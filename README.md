@@ -6,13 +6,13 @@ This project is an IEEE 754 Floating Point Converter that allows users to conver
 
 ```
 ieee754-converter
-├── src
-│   ├── index.html        # Main HTML structure for the converter
-│   ├── styles
-│   │   └── styles.css    # CSS styles for the project
-│   └── scripts
-│       └── main.js       # JavaScript functionality for the converter
-└── README.md             # Project documentation
+│
+├── index.html        # Main HTML structure for the converter
+│── styles
+│   └── styles.css    # CSS styles for the project
+│── scripts
+│   └── main.js       # JavaScript functionality for the converter
+└── README.md         # Project documentation
 ```
 
 ## Usage Instructions
