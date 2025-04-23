@@ -1,11 +1,8 @@
 // Convert number to binary string with specified bits
 function toBinaryString(num, bits) {
-    return num.toString(2).padStart(bits, '0').slice(-bits);
-}
-
-// Convert bits to binary string with specified width
-function bitsToBinaryString(bits, width) {
-    return bits.toString(2).padStart(width, '0');
+    // Ensure the number is treated as unsigned
+    const unsignedNum = num >>> 0;
+    return unsignedNum.toString(2).padStart(bits, '0').slice(-bits);
 }
 
 // Convert number to hex string, handling different bit widths
@@ -163,26 +160,47 @@ function formatDecimal(num) {
     return num.toFixed(10);
 }
 
+function hideElements(ids) {
+    ids.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.display = 'none';
+        }
+    });
+}
+
+function showElements(ids) {
+    ids.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.display = 'block';
+        }
+    });
+}
+
 // Main conversion function
-function convert() {
+function convertFloatToHex() {
     let input = parseFloat(document.getElementById('input').value);
     if (isNaN(input)) {
         alert("Please enter a valid number");
         return;
     }
-    
+
+    // Hide integer elements
+    hideElements(['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32']);
+
     // Float32: Ensure the actual Float32 representation is used
     let float32Val = new Float32Array([input])[0];
     let float32Bits = new Uint32Array(new Float32Array([input]).buffer)[0];
-    
+
     // Bfloat16
     let bfloat16Bits = floatToBfloat16(input);
     let bfloat16Val = bfloat16ToFloat32(bfloat16Bits);
-    
+
     // TF32
     let tf32Bits = floatToTF32(input);
     let tf32Val = tf32ToFloat32(tf32Bits);
-    
+
     // Float16
     let float16Bits = floatToFloat16(input);
     let float16Val = float16ToFloat32(float16Bits);
@@ -190,8 +208,8 @@ function convert() {
     // Float32 output
     document.getElementById('float32').innerHTML = `
         <div class="result-item">
-            <strong>Float32 (32 bits):</strong><br>
-            ${formatBinary(toBinaryString(float32Bits, 32), 8, 23)}<br>
+            <strong>Float32 (32 bits):</strong><br><br>
+            ${formatBinary(toBinaryString(float32Bits, 32), 8, 23)}
             <strong>Binary:</strong><br>
             <div class="binary">${toBinaryString(float32Bits, 32)}</div><br>
             <strong>Hex:</strong><br>
@@ -210,8 +228,8 @@ function convert() {
     // Bfloat16 output
     document.getElementById('bfloat16').innerHTML = `
         <div class="result-item">
-            <strong>Bfloat16 (16 bits):</strong><br>
-            ${formatBinary(toBinaryString(bfloat16Bits, 16), 8, 7)}<br>
+            <strong>Bfloat16 (16 bits):</strong><br><br>
+            ${formatBinary(toBinaryString(bfloat16Bits, 16), 8, 7)}
             <strong>Binary:</strong><br>
             <div class="binary">${toBinaryString(bfloat16Bits, 16)}</div><br>
             <strong>Hex:</strong><br>
@@ -230,8 +248,8 @@ function convert() {
     // TF32 output
     document.getElementById('tf32').innerHTML = `
         <div class="result-item">
-            <strong>TF32 (19 bits):</strong><br>
-            ${formatBinary(toBinaryString(tf32Bits, 19), 8, 10)}<br>
+            <strong>TF32 (19 bits):</strong><br><br>
+            ${formatBinary(toBinaryString(tf32Bits, 19), 8, 10)}
             <strong>Binary:</strong><br>
             <div class="binary">${toBinaryString(tf32Bits, 19)}</div><br>
             <strong>Hex:</strong><br>
@@ -250,8 +268,8 @@ function convert() {
     // Float16 output
     document.getElementById('float16').innerHTML = `
         <div class="result-item">
-            <strong>Float16 (16 bits):</strong><br>
-            ${formatBinary(toBinaryString(float16Bits, 16), 5, 10)}<br>
+            <strong>Float16 (16 bits):</strong><br><br>
+            ${formatBinary(toBinaryString(float16Bits, 16), 5, 10)}
             <strong>Binary:</strong><br>
             <div class="binary">${toBinaryString(float16Bits, 16)}</div><br>
             <strong>Hex:</strong><br>
@@ -263,6 +281,292 @@ function convert() {
                 <span><strong>Sign:</strong> 1 bit</span>
                 <span><strong>Exponent:</strong> 5 bits</span>
                 <span><strong>Mantissa:</strong> 10 bits</span>
+            </div>
+        </div>
+    `;
+}
+
+// Format integer binary string with green bit boxes
+function formatIntegerBinary(binary) {
+    let bits = binary.split('').map(bit => `<span class='bit-box integer'>${bit}</span>`).join('');
+    return `<div class='bit-container'>${bits}</div>`;
+}
+
+// Convert hex to float and integer representations
+function convertHexToFloat() {
+    let hexInputElement = document.getElementById('hexInput');
+    if (!hexInputElement) {
+        alert("Hex input element not found");
+        return;
+    }
+
+    let hexInput = hexInputElement.value.trim().replace(/^0x/i, '').toUpperCase();
+    if (!/^[0-9A-F]+$/.test(hexInput)) {
+        alert("Please enter a valid hexadecimal number");
+        return;
+    }
+
+    showElements(['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32']);
+
+    // Parse hex as a number (bits)
+    let bits = parseInt(hexInput, 16);
+
+    // Validate input length for each format
+    let isValidFloat32 = hexInput.length <= 8; // Up to 8 hex digits
+    let isValidFloat16 = hexInput.length <= 4; // Up to 4 hex digits
+    let isValidBfloat16 = hexInput.length <= 4; // Up to 4 hex digits
+    let isValidTF32 = hexInput.length <= 5; // Up to 5 hex digits
+    let isValidInt16 = hexInput.length <= 4; // Up to 4 hex digits
+    let isValidUint16 = hexInput.length <= 4; // Up to 4 hex digits
+    let isValidInt8 = hexInput.length <= 2; // Up to 2 hex digits
+    let isValidUint8 = hexInput.length <= 2; // Up to 2 hex digits
+    let isValidInt32 = hexInput.length <= 8; // Up to 8 hex digits
+    let isValidUint32 = hexInput.length <= 8; // Up to 8 hex digits
+
+    // Float32 (32 bits, 8 hex digits)
+    let float32Val = "Invalid";
+    let float32Binary = "";
+    if (isValidFloat32) {
+        let float32Bits = bits & 0xFFFFFFFF;
+        let floatView = new Float32Array(new Uint32Array([float32Bits]).buffer);
+        float32Val = formatDecimal(floatView[0]);
+        float32Binary = toBinaryString(float32Bits, 32);
+    }
+
+    // Float16 (16 bits, 4 hex digits)
+    let float16Val = "Invalid";
+    let float16Binary = "";
+    if (isValidFloat16) {
+        let float16Bits = bits & 0xFFFF;
+        float16Val = formatDecimal(float16ToFloat32(float16Bits));
+        float16Binary = toBinaryString(float16Bits, 16);
+    }
+
+    // Bfloat16 (16 bits, 4 hex digits)
+    let bfloat16Val = "Invalid";
+    let bfloat16Binary = "";
+    if (isValidBfloat16) {
+        let bfloat16Bits = bits & 0xFFFF;
+        bfloat16Val = formatDecimal(bfloat16ToFloat32(bfloat16Bits));
+        bfloat16Binary = toBinaryString(bfloat16Bits, 16);
+    }
+
+    // TF32 (19 bits, 5 hex digits)
+    let tf32Val = "Invalid";
+    let tf32Binary = "";
+    if (isValidTF32) {
+        let tf32Bits = bits & 0x7FFFF; // Mask to 19 bits
+        tf32Val = formatDecimal(tf32ToFloat32(tf32Bits));
+        tf32Binary = toBinaryString(tf32Bits, 19);
+    }
+
+    // Int16 (16 bits, 4 hex digits)
+    let int16Val = "Invalid";
+    let int16Binary = "";
+    if (isValidInt16) {
+        let int16Bits = (bits << 16) >> 16; // Sign-extend to 16 bits
+        int16Val = int16Bits.toString();
+        int16Binary = toBinaryString(int16Bits >>> 0, 16); // Unsigned for display
+    }
+
+    // Uint16 (16 bits, 4 hex digits)
+    let uint16Val = "Invalid";
+    let uint16Binary = "";
+    if (isValidUint16) {
+        let uint16Bits = bits & 0xFFFF; // Mask to 16 bits (unsigned)
+        uint16Val = uint16Bits.toString();
+        uint16Binary = toBinaryString(uint16Bits, 16);
+    }
+
+    // Int8 (8 bits, 2 hex digits)
+    let int8Val = "Invalid";
+    let int8Binary = "";
+    if (isValidInt8) {
+        let int8Bits = (bits << 24) >> 24; // Sign-extend to 8 bits
+        int8Val = int8Bits.toString();
+        int8Binary = toBinaryString(int8Bits >>> 0, 8); // Unsigned for display
+    }
+
+    // Uint8 (8 bits, 2 hex digits)
+    let uint8Val = "Invalid";
+    let uint8Binary = "";
+    if (isValidUint8) {
+        let uint8Bits = bits & 0xFF; // Mask to 8 bits (unsigned)
+        uint8Val = uint8Bits.toString();
+        uint8Binary = toBinaryString(uint8Bits, 8);
+    }
+
+    // Int32 (32 bits, 8 hex digits)
+    let int32Val = "Invalid";
+    let int32Binary = "";
+    if (isValidInt32) {
+        let int32Bits = bits | 0; // Convert to signed 32-bit integer
+        int32Val = int32Bits.toString();
+        int32Binary = toBinaryString(int32Bits >>> 0, 32); // Unsigned for display
+    }
+
+    // Uint32 (32 bits, 8 hex digits)
+    let uint32Val = "Invalid";
+    let uint32Binary = "";
+    if (isValidUint32) {
+        let uint32Bits = bits >>> 0; // Convert to unsigned 32-bit integer
+        uint32Val = uint32Bits.toString();
+        uint32Binary = toBinaryString(uint32Bits, 32);
+    }
+
+    document.getElementById('float32').innerHTML = `
+        <div class="result-item">
+            <strong>Float32 (32 bits):</strong><br><br>
+            ${isValidFloat32 ? formatBinary(float32Binary, 8, 23) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${float32Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">${isValidFloat32 ? `0x${hexInput}` : ""}</div><br>
+            <strong>Floating Point Value:</strong> ${float32Val}
+            <div class="bit-info">
+                <span><strong>Sign:</strong> 1 bit</span>
+                <span><strong>Exponent:</strong> 8 bits</span>
+                <span><strong>Mantissa:</strong> 23 bits</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('float16').innerHTML = `
+        <div class="result-item">
+            <strong>Float16 (16 bits):</strong><br><br>
+            ${isValidFloat16 ? formatBinary(float16Binary, 5, 10) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${float16Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">${isValidFloat16 ? `0x${hexInput}` : ""}</div><br>
+            <strong>Floating Point Value:</strong> ${float16Val}
+            <div class="bit-info">
+                <span><strong>Sign:</strong> 1 bit</span>
+                <span><strong>Exponent:</strong> 8 bits</span>
+                <span><strong>Mantissa:</strong> 23 bits</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('bfloat16').innerHTML = `
+        <div class="result-item">
+            <strong>Bfloat16 (16 bits):</strong><br><br>
+            ${isValidBfloat16 ? formatBinary(bfloat16Binary, 8, 7) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${bfloat16Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">${isValidBfloat16 ? `0x${hexInput}` : ""}</div><br>
+            <strong>Floating Point Value:</strong> ${bfloat16Val}
+            <div class="bit-info">
+                <span><strong>Sign:</strong> 1 bit</span>
+                <span><strong>Exponent:</strong> 8 bits</span>
+                <span><strong>Mantissa:</strong> 7 bits</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('tf32').innerHTML = `
+        <div class="result-item">
+            <strong>TF32 (19 bits):</strong><br><br>
+            ${isValidTF32 ? formatBinary(tf32Binary, 8, 10) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${tf32Binary}</div><br>
+            <div class="hex-representation">${isValidTF32 ? `0x${hexInput}` : ""}</div><br>
+            <strong>Floating Point Value:</strong> ${tf32Val}
+            <div class="bit-info">
+                <span><strong>Sign:</strong> 1 bit</span>
+                <span><strong>Exponent:</strong> 8 bits</span>
+                <span><strong>Mantissa:</strong> 10 bits</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('int8').innerHTML = `
+        <div class="result-item">
+            <strong>Int8 (8 bits):</strong><br><br>
+            ${isValidInt8 ? formatIntegerBinary(int8Binary) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${int8Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">0x${isValidInt8 ? hexInput : ""}</div><br>
+            <strong>Integer Value:</strong> ${int8Val}
+            <div class="bit-info">
+                <span><strong>Bits:</strong> 8 bits (signed)</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('uint8').innerHTML = `
+        <div class="result-item">
+            <strong>Uint8 (8 bits):</strong><br><br>
+            ${isValidUint8 ? formatIntegerBinary(uint8Binary) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${uint8Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">0x${isValidUint8 ? hexInput : ""}</div><br>
+            <strong>Integer Value:</strong> ${uint8Val}
+            <div class="bit-info">
+                <span><strong>Bits:</strong> 8 bits (unsigned)</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('int16').innerHTML = `
+        <div class="result-item">
+            <strong>Int16 (16 bits):</strong><br><br>
+            ${isValidInt16 ? formatIntegerBinary(int16Binary) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${int16Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">0x${isValidInt16 ? hexInput : ""}</div><br>
+            <strong>Integer Value:</strong> ${int16Val}
+            <div class="bit-info">
+                <span><strong>Bits:</strong> 16 bits (signed)</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('uint16').innerHTML = `
+        <div class="result-item">
+            <strong>Uint16 (16 bits):</strong><br><br>
+            ${isValidUint16 ? formatIntegerBinary(uint16Binary) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${uint16Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">0x${isValidUint16 ? hexInput : ""}</div><br>
+            <strong>Integer Value:</strong> ${uint16Val}
+            <div class="bit-info">
+                <span><strong>Bits:</strong> 16 bits (unsigned)</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('int32').innerHTML = `
+        <div class="result-item">
+            <strong>Int32 (32 bits):</strong><br><br>
+            ${isValidInt32 ? formatIntegerBinary(int32Binary) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${int32Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">0x${isValidInt32 ? hexInput : ""}</div><br>
+            <strong>Integer Value:</strong> ${int32Val}
+            <div class="bit-info">
+                <span><strong>Bits:</strong> 32 bits (signed)</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('uint32').innerHTML = `
+        <div class="result-item">
+            <strong>Uint32 (32 bits):</strong><br><br>
+            ${isValidUint32 ? formatIntegerBinary(uint32Binary) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${uint32Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">0x${isValidUint32 ? hexInput : ""}</div><br>
+            <strong>Integer Value:</strong> ${uint32Val}
+            <div class="bit-info">
+                <span><strong>Bits:</strong> 32 bits (unsigned)</span>
             </div>
         </div>
     `;
