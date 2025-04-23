@@ -42,6 +42,13 @@ button:hover {
     margin-top: 20px;
 }
 
+.int-results, .calculation-results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
 .result-item, .calculation-result-item {
     padding: 15px;
     background-color: white;
@@ -67,6 +74,7 @@ button:hover {
 .sign { background-color: #f44336; color: white; }
 .exponent { background-color: #2196F3; color: white; }
 .mantissa { background-color: #4CAF50; color: white; }
+.integer { background-color: #4CAF50; color: white; }
 
 .hex {
     margin-top: 10px;

@@ -1,22 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IEEE 754 Converter</title>
-    <link rel="stylesheet" href="styles/styles.css">
-    <script src="scripts/main.js" defer></script>
-</head>
-<body>
-    <h2>IEEE 754 Floating Point Converter</h2>
-    <label for="input">Enter a floating-point number:</label>
-    <input type="text" id="input">
-    <button onclick="convert()">Convert</button>
-    <div class="results">
-        <div id="float32"></div>
-        <div id="float16"></div>
-        <div id="bfloat16"></div>
-        <div id="tf32"></div>
-    </div>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>IEEE 754 Converter</title>
+        <link rel="stylesheet" href="styles/styles.css">
+        <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+        <script src="scripts/main.js" defer></script>
+    </head>
+    <body>
+        <h2>IEEE 754 Floating Point Converter</h2>
+        <!-- Decimal to Hex Conversion -->
+        <div>
+            <label for="input">Enter a floating-point number:</label>
+            <input type="text" id="input">
+            <button onclick="convertFloatToHex()">Convert to Hex</button>
+        </div>
+        <!-- Hex to Float/Int Conversion -->
+        <div>
+            <label for="hexInput">Enter a hexadecimal number:</label>
+            <input type="text" id="hexInput">
+            <button onclick="convertHexToFloat()">Convert from Hex</button>
+        </div>
+        <!-- Floating-Point Results -->
+        <div class="results">
+            <div id="float32"></div>
+            <div id="float16"></div>
+            <div id="bfloat16"></div>
+            <div id="tf32"></div>
+        </div>
+        <!-- Integer Results -->
+        <div class="int-results">
+            <div id="int8"></div>
+            <div id="uint8"></div>
+            <div id="int16"></div>
+            <div id="uint16"></div>
+            <div id="int32"></div>
+            <div id="uint32"></div>
+        </div>
+    </body>
 </html>
