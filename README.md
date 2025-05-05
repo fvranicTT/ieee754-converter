@@ -22,7 +22,7 @@ ieee754-converter
 2. **To convert a floating-point number to hex:**
    - Enter a floating-point number (e.g., `3.14`, `-0.5`, or `1e10`) in the **"Float Input"** field.
    - Click the **"Convert to Hex"** button.
-   - The results will display the corresponding floating-point representations (e.g., `float32`, `float16`, `bfloat16`, `tf32`) along with their **binary** and **hexadecimal** formats.
+   - The results will display the corresponding floating-point representations (e.g., `float32`, `tf32`, `float16`, `bfloat16`, `fp8e5m2`, `fp8e4m3` ) along with their **binary** and **hexadecimal** formats.
 
 3. **To convert a hexadecimal value to numeric formats:**
    - Enter a hexadecimal number (e.g., `40490fdb` or `3ff00`) in the **"Hex Input"** field.

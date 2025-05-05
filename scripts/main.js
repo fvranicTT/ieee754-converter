@@ -142,6 +142,114 @@ function float16ToFloat32(float16Bits) {
     return new Float32Array(intView.buffer)[0];
 }
 
+function floatToFP8E5M2(value) {
+    let floatView = new Float32Array([value]);
+    let intView = new Uint32Array(floatView.buffer);
+    let floatBits = intView[0];
+
+    let sign = (floatBits >>> 31) & 0x1;
+    let exponent = (floatBits >>> 23) & 0xFF;
+    let mantissa = floatBits & 0x7FFFFF;
+
+    // Adjust exponent bias from 127 (FP32) to 15 (FP8 E5M2)
+    let newExp = exponent - 127 + 15;
+
+    if (exponent === 0xFF) {
+        // Handle special cases (Infinity/NaN)
+        return (sign << 7) | (0x1F << 2) | (mantissa !== 0 ? 0x1 : 0);
+    }
+
+    if (newExp <= 0) {
+        // Subnormal or zero
+        return sign << 7;
+    }
+
+    if (newExp >= 31) {
+        // Overflow to infinity
+        return (sign << 7) | (0x1F << 2);
+    }
+
+    // Normalized number
+    return (sign << 7) | (newExp << 2) | ((mantissa >>> 21) & 0x3);
+}
+
+function fp8E5M2ToFloat(fp8Bits) {
+    let sign = (fp8Bits >>> 7) & 0x1;
+    let exponent = (fp8Bits >>> 2) & 0x1F;
+    let mantissa = fp8Bits & 0x3;
+
+    if (exponent === 0x1F) {
+        // Infinity or NaN
+        return sign ? -Infinity : Infinity;
+    }
+
+    if (exponent === 0) {
+        // Subnormal or zero
+        return sign ? -0 : 0;
+    }
+
+    // Normalized number
+    let newExp = exponent - 15 + 127; // Adjust bias back to FP32
+    let intView = new Uint32Array(1);
+    intView[0] = (sign << 31) | (newExp << 23) | (mantissa << 21);
+    let floatView = new Float32Array(intView.buffer);
+    return floatView[0];
+}
+
+function floatToFP8E4M3(value) {
+    let floatView = new Float32Array([value]);
+    let intView = new Uint32Array(floatView.buffer);
+    let floatBits = intView[0];
+
+    let sign = (floatBits >>> 31) & 0x1;
+    let exponent = (floatBits >>> 23) & 0xFF;
+    let mantissa = floatBits & 0x7FFFFF;
+
+    // Adjust exponent bias from 127 (FP32) to 7 (FP8 E4M3)
+    let newExp = exponent - 127 + 7;
+
+    if (exponent === 0xFF) {
+        // Handle special cases (Infinity/NaN)
+        return (sign << 7) | (0xF << 3) | (mantissa !== 0 ? 0x1 : 0);
+    }
+
+    if (newExp <= 0) {
+        // Subnormal or zero
+        return sign << 7;
+    }
+
+    if (newExp >= 15) {
+        // Overflow to infinity
+        return (sign << 7) | (0xF << 3);
+    }
+
+    // Normalized number
+    return (sign << 7) | (newExp << 3) | ((mantissa >>> 20) & 0x7);
+}
+
+function fp8E4M3ToFloat(fp8Bits) {
+    let sign = (fp8Bits >>> 7) & 0x1;
+    let exponent = (fp8Bits >>> 3) & 0xF;
+    let mantissa = fp8Bits & 0x7;
+
+    if (exponent === 0xF) {
+        // Infinity or NaN
+        return sign ? -Infinity : Infinity;
+    }
+
+    if (exponent === 0) {
+        // Subnormal or zero
+        return sign ? -0 : 0;
+    }
+
+    // Normalized number
+    let newExp = exponent - 7 + 127; // Adjust bias back to FP32
+    let intView = new Uint32Array(1);
+    intView[0] = (sign << 31) | (newExp << 23) | (mantissa << 20);
+    let floatView = new Float32Array(intView.buffer);
+    return floatView[0];
+}
+
 // Calculate loss between original and converted values
 function calculateLoss(original, converted) {
     if (!isFinite(original) || !isFinite(converted)) {
@@ -205,6 +313,14 @@ function convertFloatToHex() {
     let float16Bits = floatToFloat16(input);
     let float16Val = float16ToFloat32(float16Bits);
 
+    // FP8 E5M2
+    let fp8E5M2Bits = floatToFP8E5M2(input);
+    let fp8E5M2Val = fp8E5M2ToFloat(fp8E5M2Bits);
+
+    // FP8 E4M3
+    let fp8E4M3Bits = floatToFP8E4M3(input);
+    let fp8E4M3Val = fp8E4M3ToFloat(fp8E4M3Bits);
+
     // Float32 output
     document.getElementById('float32').innerHTML = `
         <div class="result-item">
@@ -223,6 +339,26 @@ function convertFloatToHex() {
                 <span><strong>Mantissa:</strong> 23 bits</span>
             </div>
         </div>
+    `;
+
+    // TF32 output
+    document.getElementById('tf32').innerHTML = `
+    <div class="result-item">
+        <strong>TF32 (19 bits):</strong><br><br>
+        ${formatBinary(toBinaryString(tf32Bits, 19), 8, 10)}
+        <strong>Binary:</strong><br>
+        <div class="binary">${toBinaryString(tf32Bits, 19)}</div><br>
+        <strong>Hex:</strong><br>
+        <div class="hex-representation">0x${toHexString(tf32Bits, 19)}</div><br>
+        <strong>Decimal Representation:</strong> ${formatDecimal(input)}<br>
+        <strong>Value Stored:</strong> ${formatDecimal(tf32Val)}<br>
+        <strong>Error:</strong> ${calculateLoss(input, tf32Val)}
+        <div class="bit-info">
+            <span><strong>Sign:</strong> 1 bit</span>
+            <span><strong>Exponent:</strong> 8 bits</span>
+            <span><strong>Mantissa:</strong> 10 bits</span>
+        </div>
+    </div>
     `;
 
     // Bfloat16 output
@@ -245,26 +381,6 @@ function convertFloatToHex() {
         </div>
     `;
 
-    // TF32 output
-    document.getElementById('tf32').innerHTML = `
-        <div class="result-item">
-            <strong>TF32 (19 bits):</strong><br><br>
-            ${formatBinary(toBinaryString(tf32Bits, 19), 8, 10)}
-            <strong>Binary:</strong><br>
-            <div class="binary">${toBinaryString(tf32Bits, 19)}</div><br>
-            <strong>Hex:</strong><br>
-            <div class="hex-representation">0x${toHexString(tf32Bits, 19)}</div><br>
-            <strong>Decimal Representation:</strong> ${formatDecimal(input)}<br>
-            <strong>Value Stored:</strong> ${formatDecimal(tf32Val)}<br>
-            <strong>Error:</strong> ${calculateLoss(input, tf32Val)}
-            <div class="bit-info">
-                <span><strong>Sign:</strong> 1 bit</span>
-                <span><strong>Exponent:</strong> 8 bits</span>
-                <span><strong>Mantissa:</strong> 10 bits</span>
-            </div>
-        </div>
-    `;
-
     // Float16 output
     document.getElementById('float16').innerHTML = `
         <div class="result-item">
@@ -281,6 +397,44 @@ function convertFloatToHex() {
                 <span><strong>Sign:</strong> 1 bit</span>
                 <span><strong>Exponent:</strong> 5 bits</span>
                 <span><strong>Mantissa:</strong> 10 bits</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('fp8-e5m2').innerHTML = `
+        <div class="result-item">
+            <strong>FP8 E5M2 (8 bits):</strong><br><br>
+            ${formatBinary(toBinaryString(fp8E5M2Bits, 8), 5, 2)}
+            <strong>Binary:</strong><br>
+            <div class="binary">${toBinaryString(fp8E5M2Bits, 8)}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">0x${toHexString(fp8E5M2Bits, 8)}</div><br>
+            <strong>Decimal Representation:</strong> ${formatDecimal(fp8E5M2Val)}<br>
+            <strong>Value Stored:</strong> ${formatDecimal(fp8E5M2Val)}<br>
+            <strong>Error:</strong> ${calculateLoss(input, fp8E5M2Val)}
+            <div class="bit-info">
+                <span><strong>Sign:</strong> 1 bit</span>
+                <span><strong>Exponent:</strong> 5 bits</span>
+                <span><strong>Mantissa:</strong> 2 bits</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('fp8-e4m3').innerHTML = `
+        <div class="result-item">
+            <strong>FP8 E4M3 (8 bits):</strong><br><br>
+            ${formatBinary(toBinaryString(fp8E4M3Bits, 8), 4, 3)}
+            <strong>Binary:</strong><br>
+            <div class="binary">${toBinaryString(fp8E4M3Bits, 8)}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">0x${toHexString(fp8E4M3Bits, 8)}</div><br>
+            <strong>Decimal Representation:</strong> ${formatDecimal(fp8E4M3Val)}<br>
+            <strong>Value Stored:</strong> ${formatDecimal(fp8E4M3Val)}<br>
+            <strong>Error:</strong> ${calculateLoss(input, fp8E4M3Val)}
+            <div class="bit-info">
+                <span><strong>Sign:</strong> 1 bit</span>
+                <span><strong>Exponent:</strong> 4 bits</span>
+                <span><strong>Mantissa:</strong> 3 bits</span>
             </div>
         </div>
     `;
@@ -322,6 +476,8 @@ function convertHexToFloat() {
     let isValidUint8 = hexInput.length <= 2; // Up to 2 hex digits
     let isValidInt32 = hexInput.length <= 8; // Up to 8 hex digits
     let isValidUint32 = hexInput.length <= 8; // Up to 8 hex digits
+    let isValidFp8E5M2 = hexInput.length <= 2; // Up to 2 hex digits
+    let isValidFp8E4M3 = hexInput.length <= 2; // Up to 2 hex digits
 
     // Float32 (32 bits, 8 hex digits)
     let float32Val = "Invalid";
@@ -414,6 +570,24 @@ function convertHexToFloat() {
         uint32Binary = toBinaryString(uint32Bits, 32);
     }
 
+    // FP8 E5M2 (8 bits, 2 hex digits)
+    let fp8E5M2Val = "Invalid";
+    let fp8E5M2Binary = "";
+    if (isValidFp8E5M2) {
+        let fp8E5M2Bits = bits & 0xFF; // Mask to 8 bits
+        fp8E5M2Val = formatDecimal(fp8E5M2ToFloat(fp8E5M2Bits));
+        fp8E5M2Binary = toBinaryString(fp8E5M2Bits, 8);
+    }
+
+    // FP8 E4M3 (8 bits, 2 hex digits)
+    let fp8E4M3Val = "Invalid";
+    let fp8E4M3Binary = "";
+    if (isValidFp8E4M3) {
+        let fp8E4M3Bits = bits & 0xFF; // Mask to 8 bits
+        fp8E4M3Val = formatDecimal(fp8E4M3ToFloat(fp8E4M3Bits));
+        fp8E4M3Binary = toBinaryString(fp8E4M3Bits, 8);
+    }
+
     document.getElementById('float32').innerHTML = `
         <div class="result-item">
             <strong>Float32 (32 bits):</strong><br><br>
@@ -427,6 +601,22 @@ function convertHexToFloat() {
                 <span><strong>Sign:</strong> 1 bit</span>
                 <span><strong>Exponent:</strong> 8 bits</span>
                 <span><strong>Mantissa:</strong> 23 bits</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('tf32').innerHTML = `
+        <div class="result-item">
+            <strong>TF32 (19 bits):</strong><br><br>
+            ${isValidTF32 ? formatBinary(tf32Binary, 8, 10) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${tf32Binary}</div><br>
+            <div class="hex-representation">${isValidTF32 ? `0x${hexInput}` : ""}</div><br>
+            <strong>Floating Point Value:</strong> ${tf32Val}
+            <div class="bit-info">
+                <span><strong>Sign:</strong> 1 bit</span>
+                <span><strong>Exponent:</strong> 8 bits</span>
+                <span><strong>Mantissa:</strong> 10 bits</span>
             </div>
         </div>
     `;
@@ -465,18 +655,36 @@ function convertHexToFloat() {
         </div>
     `;
 
-    document.getElementById('tf32').innerHTML = `
+    document.getElementById('fp8-e5m2').innerHTML = `
         <div class="result-item">
-            <strong>TF32 (19 bits):</strong><br><br>
-            ${isValidTF32 ? formatBinary(tf32Binary, 8, 10) : ""}
+            <strong>FP8 E5M2 (8 bits):</strong><br><br>
+            ${isValidFp8E5M2 ? formatBinary(fp8E5M2Binary, 5, 2) : ""}
             <strong>Binary:</strong><br>
-            <div class="binary">${tf32Binary}</div><br>
-            <div class="hex-representation">${isValidTF32 ? `0x${hexInput}` : ""}</div><br>
-            <strong>Floating Point Value:</strong> ${tf32Val}
+            <div class="binary">${fp8E5M2Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">${isValidFp8E5M2 ? `0x${hexInput}` : ""}</div><br>
+            <strong>Floating Point Value:</strong> ${fp8E5M2Val}
             <div class="bit-info">
                 <span><strong>Sign:</strong> 1 bit</span>
-                <span><strong>Exponent:</strong> 8 bits</span>
-                <span><strong>Mantissa:</strong> 10 bits</span>
+                <span><strong>Exponent:</strong> 5 bits</span>
+                <span><strong>Mantissa:</strong> 2 bits</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('fp8-e4m3').innerHTML = `
+        <div class="result-item">
+            <strong>FP8 E4M3 (8 bits):</strong><br><br>
+            ${isValidFp8E4M3 ? formatBinary(fp8E4M3Binary, 4, 3) : ""}
+            <strong>Binary:</strong><br>
+            <div class="binary">${fp8E4M3Binary}</div><br>
+            <strong>Hex:</strong><br>
+            <div class="hex-representation">${isValidFp8E4M3 ? `0x${hexInput}` : ""}</div><br>
+            <strong>Floating Point Value:</strong> ${fp8E4M3Val}
+            <div class="bit-info">
+                <span><strong>Sign:</strong> 1 bit</span>
+                <span><strong>Exponent:</strong> 4 bits</span>
+                <span><strong>Mantissa:</strong> 3 bits</span>
             </div>
         </div>
     `;
