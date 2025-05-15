@@ -611,6 +611,7 @@ function convertHexToFloat() {
             ${isValidTF32 ? formatBinary(tf32Binary, 8, 10) : ""}
             <strong>Binary:</strong><br>
             <div class="binary">${tf32Binary}</div><br>
+            <strong>Hex:</strong><br>
             <div class="hex-representation">${isValidTF32 ? `0x${hexInput}` : ""}</div><br>
             <strong>Floating Point Value:</strong> ${tf32Val}
             <div class="bit-info">
