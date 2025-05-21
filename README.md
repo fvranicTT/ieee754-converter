@@ -2,6 +2,8 @@
 
 This project is an IEEE 754 Floating Point Converter that allows users to convert floating-point numbers into various formats, including Float32, Float16, Bfloat16, and TF32. The converter provides a visual representation of the binary and hexadecimal values, along with the error in conversion.
 
+Try the tool online: https://fvranictt.github.io/ieee754-converter/
+
 ## Project Structure
 
 ```
