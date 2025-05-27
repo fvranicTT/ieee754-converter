@@ -629,16 +629,45 @@ function showElements(ids) {
   });
 }
 
+// Hide all format cards
+function hideAllFormatCards() {
+  const formats = [
+    'float32', 'tf32', 'bfloat16', 'float16', 'fp8-e5m2', 'fp8-e4m3', 'int8',
+    'uint8', 'int16', 'uint16', 'int32', 'uint32'
+  ];
+  hideElements(formats);
+}
+
+// Show floating point format cards
+function showFloatFormatCards() {
+  const formats =
+      [ 'float32', 'tf32', 'bfloat16', 'float16', 'fp8-e5m2', 'fp8-e4m3' ];
+  showElements(formats);
+}
+
+// Show integer format cards
+function showIntegerFormatCards() {
+  const formats = [ 'int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32' ];
+  showElements(formats);
+}
+
 // Main conversion function
 function convertFloatToHex() {
-  let input = parseFloat(document.getElementById('input').value);
+  let input = document.getElementById('input').value;
+  if (!input.trim()) {
+    hideAllFormatCards();
+    return;
+  }
+
+  input = parseFloat(input);
   if (isNaN(input)) {
     alert("Please enter a valid number");
     return;
   }
 
-  // Hide integer elements
+  // Hide integer elements and show float elements
   hideElements([ 'int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32' ]);
+  showFloatFormatCards();
 
   // Float32: Ensure the actual Float32 representation is used
   let float32Val = new Float32Array([ input ])[0];
@@ -770,13 +799,20 @@ function convertHexToFloat() {
     return;
   }
 
-  let hexInput = hexInputElement.value.trim().replace(/^0x/i, '').toUpperCase();
+  let hexInput = hexInputElement.value.trim();
+  if (!hexInput) {
+    hideAllFormatCards();
+    return;
+  }
+
+  hexInput = hexInput.replace(/^0x/i, '').toUpperCase();
   if (!/^[0-9A-F]+$/.test(hexInput)) {
     alert("Please enter a valid hexadecimal number");
     return;
   }
 
-  showElements([ 'int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32' ]);
+  showIntegerFormatCards();
+  showFloatFormatCards();
 
   // Parse hex as a number (bits)
   let bits = parseInt(hexInput, 16);
@@ -1266,3 +1302,6 @@ function formatPrecisionDetails(value, format = 'float32') {
         </div>
     `;
 }
+
+// Call hideAllFormatCards when the page loads
+document.addEventListener('DOMContentLoaded', hideAllFormatCards);
