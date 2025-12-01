@@ -26,9 +26,10 @@ const {
 
 function assertClose(actual, expected, tolerance = 1e-7, message = '') {
   const diff = Math.abs(actual - expected);
-  assert.ok(diff <= tolerance,
-            `${message}Expected ~${expected}, got ${actual} (diff: ${
-                diff}, tolerance: ${tolerance})`);
+  assert.ok(
+      diff <= tolerance,
+      `${message}Expected ~${expected}, got ${actual} (diff: ${
+          diff}, tolerance: ${tolerance})`);
 }
 
 function assertHex(actual, expected, message = '') {
@@ -38,9 +39,13 @@ function assertHex(actual, expected, message = '') {
           actual.toString(16).toUpperCase()}`);
 }
 
-function isNegativeZero(x) { return x === 0 && 1 / x === -Infinity; }
+function isNegativeZero(x) {
+  return x === 0 && 1 / x === -Infinity;
+}
 
-function isPositiveZero(x) { return x === 0 && 1 / x === Infinity; }
+function isPositiveZero(x) {
+  return x === 0 && 1 / x === Infinity;
+}
 
 // ============================================================================
 // BFloat16 Tests
@@ -242,8 +247,9 @@ describe('Float16 (FP16) Conversions', () => {
     const value = 1.0009765625;
     const bits = floatToFloat16(value);
     const result = float16ToFloat32(bits);
-    assert.ok(result === 1.0 || result === 1.0009765625 ||
-              Math.abs(result - value) < 0.002);
+    assert.ok(
+        result === 1.0 || result === 1.0009765625 ||
+        Math.abs(result - value) < 0.002);
   });
 
   it('Hex 0x4248 decodes to 3.140625', () => {
@@ -661,35 +667,45 @@ describe('Edge Cases and Boundary Values', () => {
 // ============================================================================
 
 describe('Hex to Float Decoding', () => {
-  it('BFloat16 hex 0x3F80 = 1.0',
-     () => { assert.strictEqual(bfloat16ToFloat32(0x3F80), 1.0); });
+  it('BFloat16 hex 0x3F80 = 1.0', () => {
+    assert.strictEqual(bfloat16ToFloat32(0x3F80), 1.0);
+  });
 
-  it('BFloat16 hex 0x4000 = 2.0',
-     () => { assert.strictEqual(bfloat16ToFloat32(0x4000), 2.0); });
+  it('BFloat16 hex 0x4000 = 2.0', () => {
+    assert.strictEqual(bfloat16ToFloat32(0x4000), 2.0);
+  });
 
-  it('BFloat16 hex 0x4040 = 3.0',
-     () => { assert.strictEqual(bfloat16ToFloat32(0x4040), 3.0); });
+  it('BFloat16 hex 0x4040 = 3.0', () => {
+    assert.strictEqual(bfloat16ToFloat32(0x4040), 3.0);
+  });
 
-  it('Float16 hex 0x3C00 = 1.0',
-     () => { assert.strictEqual(float16ToFloat32(0x3C00), 1.0); });
+  it('Float16 hex 0x3C00 = 1.0', () => {
+    assert.strictEqual(float16ToFloat32(0x3C00), 1.0);
+  });
 
-  it('Float16 hex 0x4000 = 2.0',
-     () => { assert.strictEqual(float16ToFloat32(0x4000), 2.0); });
+  it('Float16 hex 0x4000 = 2.0', () => {
+    assert.strictEqual(float16ToFloat32(0x4000), 2.0);
+  });
 
-  it('Float16 hex 0x4200 = 3.0',
-     () => { assert.strictEqual(float16ToFloat32(0x4200), 3.0); });
+  it('Float16 hex 0x4200 = 3.0', () => {
+    assert.strictEqual(float16ToFloat32(0x4200), 3.0);
+  });
 
-  it('FP8 E5M2 hex 0x3C = 1.0',
-     () => { assert.strictEqual(fp8E5M2ToFloat(0x3C), 1.0); });
+  it('FP8 E5M2 hex 0x3C = 1.0', () => {
+    assert.strictEqual(fp8E5M2ToFloat(0x3C), 1.0);
+  });
 
-  it('FP8 E5M2 hex 0x40 = 2.0',
-     () => { assert.strictEqual(fp8E5M2ToFloat(0x40), 2.0); });
+  it('FP8 E5M2 hex 0x40 = 2.0', () => {
+    assert.strictEqual(fp8E5M2ToFloat(0x40), 2.0);
+  });
 
-  it('FP8 E4M3 hex 0x38 = 1.0',
-     () => { assert.strictEqual(fp8E4M3ToFloat(0x38), 1.0); });
+  it('FP8 E4M3 hex 0x38 = 1.0', () => {
+    assert.strictEqual(fp8E4M3ToFloat(0x38), 1.0);
+  });
 
-  it('FP8 E4M3 hex 0x40 = 2.0',
-     () => { assert.strictEqual(fp8E4M3ToFloat(0x40), 2.0); });
+  it('FP8 E4M3 hex 0x40 = 2.0', () => {
+    assert.strictEqual(fp8E4M3ToFloat(0x40), 2.0);
+  });
 });
 
 // ============================================================================
@@ -745,8 +761,9 @@ describe('Precision Analysis - Bits Required', () => {
   it('3.14159265 requires many mantissa bits (irrational approximation)',
      () => {
        const analysis = analyzePrecision(3.14159265, 'float32');
-       assert.ok(analysis.effectiveBits >= 20,
-                 `Expected >= 20 bits, got ${analysis.effectiveBits}`);
+       assert.ok(
+           analysis.effectiveBits >= 20,
+           `Expected >= 20 bits, got ${analysis.effectiveBits}`);
      });
 
   it('Zero requires 0 bits', () => {

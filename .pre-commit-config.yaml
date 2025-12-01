@@ -1,0 +1,28 @@
+repos:
+  # Standard hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+
+  # Code formatting with clang-format
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.8
+    hooks:
+      - id: clang-format
+        types_or: [javascript, css]
+
+  # Run tests locally (CI has a dedicated test job with matrix testing)
+  - repo: local
+    hooks:
+      - id: run-tests
+        name: Run tests
+        entry: bash -c 'if [ -z "$CI" ]; then node --test scripts/tests.js; fi'
+        language: system
+        pass_filenames: false
+        always_run: true

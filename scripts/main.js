@@ -27,7 +27,7 @@ function formatBinary(binary, expBits, mantissaBits) {
 
 // Convert Float32 to Bfloat16
 function floatToBfloat16(value) {
-  let floatView = new Float32Array([ value ]);
+  let floatView = new Float32Array([value]);
   let intView = new Uint32Array(floatView.buffer);
   let floatBits = intView[0];
 
@@ -69,7 +69,7 @@ function floatToBfloat16(value) {
 
   // Check for exponent overflow
   if (exponent >= 0xFF) {
-    return (sign << 15) | (0xFF << 7); // Infinity
+    return (sign << 15) | (0xFF << 7);  // Infinity
   }
 
   return (sign << 15) | (exponent << 7) | mantissa;
@@ -80,12 +80,12 @@ function bfloat16ToFloat32(bfloat16Bits) {
   // BFloat16 is essentially the upper 16 bits of Float32
   // So we can simply shift left by 16 to get the Float32 representation
   let float32Bits = bfloat16Bits << 16;
-  return new Float32Array(new Uint32Array([ float32Bits ]).buffer)[0];
+  return new Float32Array(new Uint32Array([float32Bits]).buffer)[0];
 }
 
 // Convert Float32 to TF32
 function floatToTF32(value) {
-  let floatView = new Float32Array([ value ]);
+  let floatView = new Float32Array([value]);
   let intView = new Uint32Array(floatView.buffer);
   let floatBits = intView[0];
 
@@ -127,7 +127,7 @@ function floatToTF32(value) {
 
   // Check for exponent overflow
   if (exponent >= 0xFF) {
-    return (sign << 18) | (0xFF << 10); // Infinity
+    return (sign << 18) | (0xFF << 10);  // Infinity
   }
 
   return (sign << 18) | (exponent << 10) | mantissa;
@@ -140,12 +140,12 @@ function tf32ToFloat32(tf32Bits) {
   // Float32: 1 sign + 8 exponent + 23 mantissa = 32 bits
   // So we can simply shift left by 13 to get the Float32 representation
   let float32Bits = tf32Bits << 13;
-  return new Float32Array(new Uint32Array([ float32Bits ]).buffer)[0];
+  return new Float32Array(new Uint32Array([float32Bits]).buffer)[0];
 }
 
 // Convert Float32 to Float16 (FP16)
 function floatToFloat16(value) {
-  let floatView = new Float32Array([ value ]);
+  let floatView = new Float32Array([value]);
   let intView = new Uint32Array(floatView.buffer);
   let f = intView[0];
 
@@ -160,8 +160,8 @@ function floatToFloat16(value) {
   if (exponent === 0xFF) {
     // Infinity or NaN
     halfExp = 0x1F << 10;
-    halfMant = mantissa !== 0 ? (mantissa >>> 13) | 0x200
-                              : 0; // Preserve NaN (ensure non-zero mantissa)
+    halfMant = mantissa !== 0 ? (mantissa >>> 13) | 0x200 :
+                                0;  // Preserve NaN (ensure non-zero mantissa)
   } else if (exponent === 0) {
     // Handle subnormal Float32 input
     if (mantissa === 0) {
@@ -196,7 +196,7 @@ function floatToFloat16(value) {
     }
   } else {
     // Normal number
-    let newExp = exponent - 127 + 15; // Adjust bias
+    let newExp = exponent - 127 + 15;  // Adjust bias
     if (newExp >= 31) {
       // Overflow to infinity
       halfExp = 0x1F << 10;
@@ -254,7 +254,7 @@ function float16ToFloat32(float16Bits) {
 
   if (exponent === 0) {
     if (mantissa === 0) {
-      return new Float32Array(new Uint32Array([ sign ]).buffer)[0];
+      return new Float32Array(new Uint32Array([sign]).buffer)[0];
     }
     let shift = 0;
     while ((mantissa & 0x0400) === 0) {
@@ -265,7 +265,7 @@ function float16ToFloat32(float16Bits) {
     mantissa &= 0x3FF;
   } else if (exponent === 0x1F) {
     return new Float32Array(
-        new Uint32Array([ sign | 0x7F800000 | (mantissa << 13) ]).buffer)[0];
+        new Uint32Array([sign | 0x7F800000 | (mantissa << 13)]).buffer)[0];
   }
 
   exponent = (exponent + (127 - 15));
@@ -275,7 +275,7 @@ function float16ToFloat32(float16Bits) {
 }
 
 function floatToFP8E5M2(value) {
-  let floatView = new Float32Array([ value ]);
+  let floatView = new Float32Array([value]);
   let intView = new Uint32Array(floatView.buffer);
   let floatBits = intView[0];
 
@@ -292,7 +292,7 @@ function floatToFP8E5M2(value) {
   if (exponent === 0) {
     // Handle subnormal Float32 input
     if (mantissa === 0) {
-      return sign << 7; // Zero
+      return sign << 7;  // Zero
     }
     // Normalize the subnormal number
     let shift = Math.clz32(mantissa) - 8;
@@ -311,7 +311,7 @@ function floatToFP8E5M2(value) {
   if (newExp <= 0) {
     // Result will be subnormal or zero
     if (newExp < -2) {
-      return sign << 7; // Underflow to zero
+      return sign << 7;  // Underflow to zero
     }
     // Generate subnormal FP8 with rounding
     mantissa = (mantissa | 0x800000);
@@ -373,9 +373,9 @@ function fp8E5M2ToFloat(fp8Bits) {
     // 2^(-16) Find the position of the leading 1 bit to normalize
     let shift;
     if (mantissa & 0x2) {
-      shift = 1; // Leading 1 at bit 1 (MSB)
+      shift = 1;  // Leading 1 at bit 1 (MSB)
     } else {
-      shift = 2; // Leading 1 at bit 0 (LSB)
+      shift = 2;  // Leading 1 at bit 0 (LSB)
     }
     // New exponent: original subnormal exp is (1-15) = -14, then subtract shift
     // for normalization
@@ -387,12 +387,12 @@ function fp8E5M2ToFloat(fp8Bits) {
     let float32MantissaShift = 23 - remainingBits;
     let intView = new Uint32Array(1);
     intView[0] = (sign << 31) | (newExp << 23) |
-                 (remainingMantissa << float32MantissaShift);
+        (remainingMantissa << float32MantissaShift);
     return new Float32Array(intView.buffer)[0];
   }
 
   // Normalized number
-  let newExp = exponent - 15 + 127; // Adjust bias back to FP32
+  let newExp = exponent - 15 + 127;  // Adjust bias back to FP32
   let intView = new Uint32Array(1);
   intView[0] = (sign << 31) | (newExp << 23) | (mantissa << 21);
   let floatView = new Float32Array(intView.buffer);
@@ -400,7 +400,7 @@ function fp8E5M2ToFloat(fp8Bits) {
 }
 
 function floatToFP8E4M3(value) {
-  let floatView = new Float32Array([ value ]);
+  let floatView = new Float32Array([value]);
   let intView = new Uint32Array(floatView.buffer);
   let floatBits = intView[0];
 
@@ -417,7 +417,7 @@ function floatToFP8E4M3(value) {
   if (exponent === 0) {
     // Handle subnormal Float32 input
     if (mantissa === 0) {
-      return sign << 7; // Zero
+      return sign << 7;  // Zero
     }
     // Normalize the subnormal number
     let shift = Math.clz32(mantissa) - 8;
@@ -436,7 +436,7 @@ function floatToFP8E4M3(value) {
   if (newExp <= 0) {
     // Result will be subnormal or zero
     if (newExp < -3) {
-      return sign << 7; // Underflow to zero
+      return sign << 7;  // Underflow to zero
     }
     // Generate subnormal FP8 with rounding
     mantissa = (mantissa | 0x800000);
@@ -498,11 +498,11 @@ function fp8E4M3ToFloat(fp8Bits) {
     // 2^(-9) Find the position of the leading 1 bit to normalize
     let shift;
     if (mantissa & 0x4) {
-      shift = 1; // Leading 1 at bit 2 (MSB)
+      shift = 1;  // Leading 1 at bit 2 (MSB)
     } else if (mantissa & 0x2) {
-      shift = 2; // Leading 1 at bit 1
+      shift = 2;  // Leading 1 at bit 1
     } else {
-      shift = 3; // Leading 1 at bit 0 (LSB)
+      shift = 3;  // Leading 1 at bit 0 (LSB)
     }
     // New exponent: original subnormal exp is (1-7) = -6, then subtract shift
     // for normalization
@@ -514,12 +514,12 @@ function fp8E4M3ToFloat(fp8Bits) {
     let float32MantissaShift = 23 - remainingBits;
     let intView = new Uint32Array(1);
     intView[0] = (sign << 31) | (newExp << 23) |
-                 (remainingMantissa << float32MantissaShift);
+        (remainingMantissa << float32MantissaShift);
     return new Float32Array(intView.buffer)[0];
   }
 
   // Normalized number
-  let newExp = exponent - 7 + 127; // Adjust bias back to FP32
+  let newExp = exponent - 7 + 127;  // Adjust bias back to FP32
   let intView = new Uint32Array(1);
   intView[0] = (sign << 31) | (newExp << 23) | (mantissa << 20);
   let floatView = new Float32Array(intView.buffer);
@@ -530,112 +530,112 @@ function fp8E4M3ToFloat(fp8Bits) {
 function calculateLoss(original, converted, format = 'float32') {
   if (!isFinite(original) || !isFinite(converted)) {
     if (original === converted)
-      return "+0.000000000000000";
+      return '+0.000000000000000';
     if (isNaN(original) || isNaN(converted))
-      return "NaN";
-    return "Infinity";
+      return 'NaN';
+    return 'Infinity';
   }
 
   const absOriginal = Math.abs(original);
   const absConverted = Math.abs(converted);
-  const error = converted - original; // Keep sign
+  const error = converted - original;  // Keep sign
   const absError = Math.abs(error);
 
   // Format-specific parameters
   const formatInfo = {
-    'float32' : {
-      mantissaBits : 23,
-      expBits : 8,
-      expBias : 127,
-      minSubnormal : Math.pow(2, -149),
-      maxNormal : (2 - Math.pow(2, -23)) * Math.pow(2, 127),
-      mantissaMask : 0x7FFFFF,
-      expMask : 0xFF,
-      expShift : 23
+    'float32': {
+      mantissaBits: 23,
+      expBits: 8,
+      expBias: 127,
+      minSubnormal: Math.pow(2, -149),
+      maxNormal: (2 - Math.pow(2, -23)) * Math.pow(2, 127),
+      mantissaMask: 0x7FFFFF,
+      expMask: 0xFF,
+      expShift: 23
     },
-    'tf32' : {
-      mantissaBits : 10,
-      expBits : 8,
-      expBias : 127,
-      minSubnormal : Math.pow(2, -136),
-      maxNormal : (2 - Math.pow(2, -10)) * Math.pow(2, 127),
-      mantissaMask : 0x3FF,
-      expMask : 0xFF,
-      expShift : 10
+    'tf32': {
+      mantissaBits: 10,
+      expBits: 8,
+      expBias: 127,
+      minSubnormal: Math.pow(2, -136),
+      maxNormal: (2 - Math.pow(2, -10)) * Math.pow(2, 127),
+      mantissaMask: 0x3FF,
+      expMask: 0xFF,
+      expShift: 10
     },
-    'bfloat16' : {
-      mantissaBits : 7,
-      expBits : 8,
-      expBias : 127,
-      minSubnormal : Math.pow(2, -133),
-      maxNormal : (2 - Math.pow(2, -7)) * Math.pow(2, 127),
-      mantissaMask : 0x7F,
-      expMask : 0xFF,
-      expShift : 7
+    'bfloat16': {
+      mantissaBits: 7,
+      expBits: 8,
+      expBias: 127,
+      minSubnormal: Math.pow(2, -133),
+      maxNormal: (2 - Math.pow(2, -7)) * Math.pow(2, 127),
+      mantissaMask: 0x7F,
+      expMask: 0xFF,
+      expShift: 7
     },
-    'float16' : {
-      mantissaBits : 10,
-      expBits : 5,
-      expBias : 15,
-      minSubnormal : Math.pow(2, -24),
-      maxNormal : (2 - Math.pow(2, -10)) * Math.pow(2, 15),
-      mantissaMask : 0x3FF,
-      expMask : 0x1F,
-      expShift : 10
+    'float16': {
+      mantissaBits: 10,
+      expBits: 5,
+      expBias: 15,
+      minSubnormal: Math.pow(2, -24),
+      maxNormal: (2 - Math.pow(2, -10)) * Math.pow(2, 15),
+      mantissaMask: 0x3FF,
+      expMask: 0x1F,
+      expShift: 10
     },
-    'fp8e5m2' : {
-      mantissaBits : 2,
-      expBits : 5,
-      expBias : 15,
-      minSubnormal : Math.pow(2, -16),
-      maxNormal : (2 - Math.pow(2, -2)) * Math.pow(2, 15),
-      mantissaMask : 0x3,
-      expMask : 0x1F,
-      expShift : 2
+    'fp8e5m2': {
+      mantissaBits: 2,
+      expBits: 5,
+      expBias: 15,
+      minSubnormal: Math.pow(2, -16),
+      maxNormal: (2 - Math.pow(2, -2)) * Math.pow(2, 15),
+      mantissaMask: 0x3,
+      expMask: 0x1F,
+      expShift: 2
     },
-    'fp8e4m3' : {
-      mantissaBits : 3,
-      expBits : 4,
-      expBias : 7,
-      minSubnormal : Math.pow(2, -9),
-      maxNormal : (2 - Math.pow(2, -3)) * Math.pow(2, 7),
-      mantissaMask : 0x7,
-      expMask : 0xF,
-      expShift : 3
+    'fp8e4m3': {
+      mantissaBits: 3,
+      expBits: 4,
+      expBias: 7,
+      minSubnormal: Math.pow(2, -9),
+      maxNormal: (2 - Math.pow(2, -3)) * Math.pow(2, 7),
+      mantissaMask: 0x7,
+      expMask: 0xF,
+      expShift: 3
     }
   }[format];
 
   // If converted to zero, show the full original value as error
   if (absConverted === 0) {
-    return (original > 0 ? "-" : "+") + original.toExponential(15);
+    return (original > 0 ? '-' : '+') + original.toExponential(15);
   }
 
   // If value is larger than format's maximum, show overflow error
   if (absConverted > formatInfo.maxNormal) {
-    return "Overflow: " + (error > 0 ? "+" : "-") + absError.toExponential(15);
+    return 'Overflow: ' + (error > 0 ? '+' : '-') + absError.toExponential(15);
   }
 
   // Get the native format bits
   let formatBits;
   switch (format) {
-  case 'float32':
-    formatBits = new Uint32Array(new Float32Array([ absConverted ]).buffer)[0];
-    break;
-  case 'tf32':
-    formatBits = floatToTF32(absConverted);
-    break;
-  case 'bfloat16':
-    formatBits = floatToBfloat16(absConverted);
-    break;
-  case 'float16':
-    formatBits = floatToFloat16(absConverted);
-    break;
-  case 'fp8e5m2':
-    formatBits = floatToFP8E5M2(absConverted);
-    break;
-  case 'fp8e4m3':
-    formatBits = floatToFP8E4M3(absConverted);
-    break;
+    case 'float32':
+      formatBits = new Uint32Array(new Float32Array([absConverted]).buffer)[0];
+      break;
+    case 'tf32':
+      formatBits = floatToTF32(absConverted);
+      break;
+    case 'bfloat16':
+      formatBits = floatToBfloat16(absConverted);
+      break;
+    case 'float16':
+      formatBits = floatToFloat16(absConverted);
+      break;
+    case 'fp8e5m2':
+      formatBits = floatToFP8E5M2(absConverted);
+      break;
+    case 'fp8e4m3':
+      formatBits = floatToFP8E4M3(absConverted);
+      break;
   }
 
   // Extract exponent and mantissa using format-specific masks and shifts
@@ -659,7 +659,7 @@ function calculateLoss(original, converted, format = 'float32') {
     precisionStep = formatInfo.minSubnormal;
   } else if (exponent === formatInfo.expMask) {
     // Infinity or NaN
-    return (error > 0 ? "+" : "-") + "Infinity";
+    return (error > 0 ? '+' : '-') + 'Infinity';
   } else {
     // Normal number
     // For normal numbers, find the position of the last significant bit
@@ -676,7 +676,7 @@ function calculateLoss(original, converted, format = 'float32') {
   }
 
   // Always show absolute error with sign
-  const sign = error > 0 ? "+" : "-";
+  const sign = error > 0 ? '+' : '-';
   // Use regular notation for errors larger than 1e-5
   if (absError >= 1e-7) {
     return `${sign}${absError.toFixed(15)}`;
@@ -704,7 +704,7 @@ function formatDecimal(num) {
 
   // For numbers close to zero
   if (absNum === 0 || absNum < Number.EPSILON) {
-    return "0.0000000000";
+    return '0.0000000000';
   }
 
   // For normal range numbers, use fixed notation
@@ -741,13 +741,13 @@ function hideAllFormatCards() {
 // Show floating point format cards
 function showFloatFormatCards() {
   const formats =
-      [ 'float32', 'tf32', 'bfloat16', 'float16', 'fp8-e5m2', 'fp8-e4m3' ];
+      ['float32', 'tf32', 'bfloat16', 'float16', 'fp8-e5m2', 'fp8-e4m3'];
   showElements(formats);
 }
 
 // Show integer format cards
 function showIntegerFormatCards() {
-  const formats = [ 'int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32' ];
+  const formats = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32'];
   showElements(formats);
 }
 
@@ -761,17 +761,17 @@ function convertFloatToHex() {
 
   input = parseFloat(input);
   if (isNaN(input)) {
-    alert("Please enter a valid number");
+    alert('Please enter a valid number');
     return;
   }
 
   // Hide integer elements and show float elements
-  hideElements([ 'int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32' ]);
+  hideElements(['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32']);
   showFloatFormatCards();
 
   // Float32: Ensure the actual Float32 representation is used
-  let float32Val = new Float32Array([ input ])[0];
-  let float32Bits = new Uint32Array(new Float32Array([ input ]).buffer)[0];
+  let float32Val = new Float32Array([input])[0];
+  let float32Bits = new Uint32Array(new Float32Array([input]).buffer)[0];
 
   // Bfloat16
   let bfloat16Bits = floatToBfloat16(input);
@@ -895,7 +895,7 @@ function formatIntegerBinary(binary) {
 function convertHexToFloat() {
   let hexInputElement = document.getElementById('hexInput');
   if (!hexInputElement) {
-    alert("Hex input element not found");
+    alert('Hex input element not found');
     return;
   }
 
@@ -907,7 +907,7 @@ function convertHexToFloat() {
 
   hexInput = hexInput.replace(/^0x/i, '').toUpperCase();
   if (!/^[0-9A-F]+$/.test(hexInput)) {
-    alert("Please enter a valid hexadecimal number");
+    alert('Please enter a valid hexadecimal number');
     return;
   }
 
@@ -915,82 +915,82 @@ function convertHexToFloat() {
   let bits = parseInt(hexInput, 16);
 
   // Validate input length for each format
-  let isValidFloat32 = hexInput.length <= 8;  // Up to 8 hex digits
-  let isValidFloat16 = hexInput.length <= 4;  // Up to 4 hex digits
-  let isValidBfloat16 = hexInput.length <= 4; // Up to 4 hex digits
-  let isValidTF32 = hexInput.length <= 5;     // Up to 5 hex digits
-  let isValidInt16 = hexInput.length <= 4;    // Up to 4 hex digits
-  let isValidUint16 = hexInput.length <= 4;   // Up to 4 hex digits
-  let isValidInt8 = hexInput.length <= 2;     // Up to 2 hex digits
-  let isValidUint8 = hexInput.length <= 2;    // Up to 2 hex digits
-  let isValidInt32 = hexInput.length <= 8;    // Up to 8 hex digits
-  let isValidUint32 = hexInput.length <= 8;   // Up to 8 hex digits
-  let isValidFp8E5M2 = hexInput.length <= 2;  // Up to 2 hex digits
-  let isValidFp8E4M3 = hexInput.length <= 2;  // Up to 2 hex digits
+  let isValidFloat32 = hexInput.length <= 8;   // Up to 8 hex digits
+  let isValidFloat16 = hexInput.length <= 4;   // Up to 4 hex digits
+  let isValidBfloat16 = hexInput.length <= 4;  // Up to 4 hex digits
+  let isValidTF32 = hexInput.length <= 5;      // Up to 5 hex digits
+  let isValidInt16 = hexInput.length <= 4;     // Up to 4 hex digits
+  let isValidUint16 = hexInput.length <= 4;    // Up to 4 hex digits
+  let isValidInt8 = hexInput.length <= 2;      // Up to 2 hex digits
+  let isValidUint8 = hexInput.length <= 2;     // Up to 2 hex digits
+  let isValidInt32 = hexInput.length <= 8;     // Up to 8 hex digits
+  let isValidUint32 = hexInput.length <= 8;    // Up to 8 hex digits
+  let isValidFp8E5M2 = hexInput.length <= 2;   // Up to 2 hex digits
+  let isValidFp8E4M3 = hexInput.length <= 2;   // Up to 2 hex digits
 
   // Show/hide format cards based on validity
   if (isValidFloat32)
-    showElements([ 'float32' ]);
+    showElements(['float32']);
   else
-    hideElements([ 'float32' ]);
+    hideElements(['float32']);
   if (isValidFloat16)
-    showElements([ 'float16' ]);
+    showElements(['float16']);
   else
-    hideElements([ 'float16' ]);
+    hideElements(['float16']);
   if (isValidBfloat16)
-    showElements([ 'bfloat16' ]);
+    showElements(['bfloat16']);
   else
-    hideElements([ 'bfloat16' ]);
+    hideElements(['bfloat16']);
   if (isValidTF32)
-    showElements([ 'tf32' ]);
+    showElements(['tf32']);
   else
-    hideElements([ 'tf32' ]);
+    hideElements(['tf32']);
   if (isValidFp8E5M2)
-    showElements([ 'fp8-e5m2' ]);
+    showElements(['fp8-e5m2']);
   else
-    hideElements([ 'fp8-e5m2' ]);
+    hideElements(['fp8-e5m2']);
   if (isValidFp8E4M3)
-    showElements([ 'fp8-e4m3' ]);
+    showElements(['fp8-e4m3']);
   else
-    hideElements([ 'fp8-e4m3' ]);
+    hideElements(['fp8-e4m3']);
   if (isValidInt8)
-    showElements([ 'int8' ]);
+    showElements(['int8']);
   else
-    hideElements([ 'int8' ]);
+    hideElements(['int8']);
   if (isValidUint8)
-    showElements([ 'uint8' ]);
+    showElements(['uint8']);
   else
-    hideElements([ 'uint8' ]);
+    hideElements(['uint8']);
   if (isValidInt16)
-    showElements([ 'int16' ]);
+    showElements(['int16']);
   else
-    hideElements([ 'int16' ]);
+    hideElements(['int16']);
   if (isValidUint16)
-    showElements([ 'uint16' ]);
+    showElements(['uint16']);
   else
-    hideElements([ 'uint16' ]);
+    hideElements(['uint16']);
   if (isValidInt32)
-    showElements([ 'int32' ]);
+    showElements(['int32']);
   else
-    hideElements([ 'int32' ]);
+    hideElements(['int32']);
   if (isValidUint32)
-    showElements([ 'uint32' ]);
+    showElements(['uint32']);
   else
-    hideElements([ 'uint32' ]);
+    hideElements(['uint32']);
 
   // Float32 (32 bits, 8 hex digits)
-  let float32Val = "Invalid";
-  let float32Binary = "";
+  let float32Val = 'Invalid';
+  let float32Binary = '';
   if (isValidFloat32) {
     let float32Bits = bits & 0xFFFFFFFF;
-    let floatView = new Float32Array(new Uint32Array([ float32Bits ]).buffer);
+    let floatView = new Float32Array(new Uint32Array([float32Bits]).buffer);
     float32Val = formatDecimal(floatView[0]);
     float32Binary = toBinaryString(float32Bits, 32);
   }
 
   // Float16 (16 bits, 4 hex digits)
-  let float16Val = "Invalid";
-  let float16Binary = "";
+  let float16Val = 'Invalid';
+  let float16Binary = '';
   if (isValidFloat16) {
     let float16Bits = bits & 0xFFFF;
     float16Val = formatDecimal(float16ToFloat32(float16Bits));
@@ -998,8 +998,8 @@ function convertHexToFloat() {
   }
 
   // Bfloat16 (16 bits, 4 hex digits)
-  let bfloat16Val = "Invalid";
-  let bfloat16Binary = "";
+  let bfloat16Val = 'Invalid';
+  let bfloat16Binary = '';
   if (isValidBfloat16) {
     let bfloat16Bits = bits & 0xFFFF;
     bfloat16Val = formatDecimal(bfloat16ToFloat32(bfloat16Bits));
@@ -1007,82 +1007,82 @@ function convertHexToFloat() {
   }
 
   // TF32 (19 bits, 5 hex digits)
-  let tf32Val = "Invalid";
-  let tf32Binary = "";
+  let tf32Val = 'Invalid';
+  let tf32Binary = '';
   if (isValidTF32) {
-    let tf32Bits = bits & 0x7FFFF; // Mask to 19 bits
+    let tf32Bits = bits & 0x7FFFF;  // Mask to 19 bits
     tf32Val = formatDecimal(tf32ToFloat32(tf32Bits));
     tf32Binary = toBinaryString(tf32Bits, 19);
   }
 
   // Int16 (16 bits, 4 hex digits)
-  let int16Val = "Invalid";
-  let int16Binary = "";
+  let int16Val = 'Invalid';
+  let int16Binary = '';
   if (isValidInt16) {
-    let int16Bits = (bits << 16) >> 16; // Sign-extend to 16 bits
+    let int16Bits = (bits << 16) >> 16;  // Sign-extend to 16 bits
     int16Val = int16Bits.toString();
-    int16Binary = toBinaryString(int16Bits >>> 0, 16); // Unsigned for display
+    int16Binary = toBinaryString(int16Bits >>> 0, 16);  // Unsigned for display
   }
 
   // Uint16 (16 bits, 4 hex digits)
-  let uint16Val = "Invalid";
-  let uint16Binary = "";
+  let uint16Val = 'Invalid';
+  let uint16Binary = '';
   if (isValidUint16) {
-    let uint16Bits = bits & 0xFFFF; // Mask to 16 bits (unsigned)
+    let uint16Bits = bits & 0xFFFF;  // Mask to 16 bits (unsigned)
     uint16Val = uint16Bits.toString();
     uint16Binary = toBinaryString(uint16Bits, 16);
   }
 
   // Int8 (8 bits, 2 hex digits)
-  let int8Val = "Invalid";
-  let int8Binary = "";
+  let int8Val = 'Invalid';
+  let int8Binary = '';
   if (isValidInt8) {
-    let int8Bits = (bits << 24) >> 24; // Sign-extend to 8 bits
+    let int8Bits = (bits << 24) >> 24;  // Sign-extend to 8 bits
     int8Val = int8Bits.toString();
-    int8Binary = toBinaryString(int8Bits >>> 0, 8); // Unsigned for display
+    int8Binary = toBinaryString(int8Bits >>> 0, 8);  // Unsigned for display
   }
 
   // Uint8 (8 bits, 2 hex digits)
-  let uint8Val = "Invalid";
-  let uint8Binary = "";
+  let uint8Val = 'Invalid';
+  let uint8Binary = '';
   if (isValidUint8) {
-    let uint8Bits = bits & 0xFF; // Mask to 8 bits (unsigned)
+    let uint8Bits = bits & 0xFF;  // Mask to 8 bits (unsigned)
     uint8Val = uint8Bits.toString();
     uint8Binary = toBinaryString(uint8Bits, 8);
   }
 
   // Int32 (32 bits, 8 hex digits)
-  let int32Val = "Invalid";
-  let int32Binary = "";
+  let int32Val = 'Invalid';
+  let int32Binary = '';
   if (isValidInt32) {
-    let int32Bits = bits | 0; // Convert to signed 32-bit integer
+    let int32Bits = bits | 0;  // Convert to signed 32-bit integer
     int32Val = int32Bits.toString();
-    int32Binary = toBinaryString(int32Bits >>> 0, 32); // Unsigned for display
+    int32Binary = toBinaryString(int32Bits >>> 0, 32);  // Unsigned for display
   }
 
   // Uint32 (32 bits, 8 hex digits)
-  let uint32Val = "Invalid";
-  let uint32Binary = "";
+  let uint32Val = 'Invalid';
+  let uint32Binary = '';
   if (isValidUint32) {
-    let uint32Bits = bits >>> 0; // Convert to unsigned 32-bit integer
+    let uint32Bits = bits >>> 0;  // Convert to unsigned 32-bit integer
     uint32Val = uint32Bits.toString();
     uint32Binary = toBinaryString(uint32Bits, 32);
   }
 
   // FP8 E5M2 (8 bits, 2 hex digits)
-  let fp8E5M2Val = "Invalid";
-  let fp8E5M2Binary = "";
+  let fp8E5M2Val = 'Invalid';
+  let fp8E5M2Binary = '';
   if (isValidFp8E5M2) {
-    let fp8E5M2Bits = bits & 0xFF; // Mask to 8 bits
+    let fp8E5M2Bits = bits & 0xFF;  // Mask to 8 bits
     fp8E5M2Val = formatDecimal(fp8E5M2ToFloat(fp8E5M2Bits));
     fp8E5M2Binary = toBinaryString(fp8E5M2Bits, 8);
   }
 
   // FP8 E4M3 (8 bits, 2 hex digits)
-  let fp8E4M3Val = "Invalid";
-  let fp8E4M3Binary = "";
+  let fp8E4M3Val = 'Invalid';
+  let fp8E4M3Binary = '';
   if (isValidFp8E4M3) {
-    let fp8E4M3Bits = bits & 0xFF; // Mask to 8 bits
+    let fp8E4M3Bits = bits & 0xFF;  // Mask to 8 bits
     fp8E4M3Val = formatDecimal(fp8E4M3ToFloat(fp8E4M3Bits));
     fp8E4M3Binary = toBinaryString(fp8E4M3Bits, 8);
   }
@@ -1226,96 +1226,96 @@ function convertHexToFloat() {
 function analyzePrecision(value, format = 'float32') {
   // Format-specific parameters
   const formatInfo = {
-    'float32' : {
-      mantissaBits : 23,
-      expBits : 8,
-      expBias : 127,
-      minSubnormal : Math.pow(2, -149),
-      maxNormal : (2 - Math.pow(2, -23)) * Math.pow(2, 127),
-      minNormal : Math.pow(2, -126),
-      expMask : 0xFF,
-      mantissaMask : 0x7FFFFF,
-      expShift : 23
+    'float32': {
+      mantissaBits: 23,
+      expBits: 8,
+      expBias: 127,
+      minSubnormal: Math.pow(2, -149),
+      maxNormal: (2 - Math.pow(2, -23)) * Math.pow(2, 127),
+      minNormal: Math.pow(2, -126),
+      expMask: 0xFF,
+      mantissaMask: 0x7FFFFF,
+      expShift: 23
     },
-    'tf32' : {
-      mantissaBits : 10,
-      expBits : 8,
-      expBias : 127,
-      minSubnormal : Math.pow(2, -136),
-      maxNormal : (2 - Math.pow(2, -10)) * Math.pow(2, 127),
-      minNormal : Math.pow(2, -126),
-      expMask : 0xFF,
-      mantissaMask : 0x3FF,
-      expShift : 10
+    'tf32': {
+      mantissaBits: 10,
+      expBits: 8,
+      expBias: 127,
+      minSubnormal: Math.pow(2, -136),
+      maxNormal: (2 - Math.pow(2, -10)) * Math.pow(2, 127),
+      minNormal: Math.pow(2, -126),
+      expMask: 0xFF,
+      mantissaMask: 0x3FF,
+      expShift: 10
     },
-    'bfloat16' : {
-      mantissaBits : 7,
-      expBits : 8,
-      expBias : 127,
-      minSubnormal : Math.pow(2, -133),
-      maxNormal : (2 - Math.pow(2, -7)) * Math.pow(2, 127),
-      minNormal : Math.pow(2, -126),
-      expMask : 0xFF,
-      mantissaMask : 0x7F,
-      expShift : 7
+    'bfloat16': {
+      mantissaBits: 7,
+      expBits: 8,
+      expBias: 127,
+      minSubnormal: Math.pow(2, -133),
+      maxNormal: (2 - Math.pow(2, -7)) * Math.pow(2, 127),
+      minNormal: Math.pow(2, -126),
+      expMask: 0xFF,
+      mantissaMask: 0x7F,
+      expShift: 7
     },
-    'float16' : {
-      mantissaBits : 10,
-      expBits : 5,
-      expBias : 15,
-      minSubnormal : Math.pow(2, -24),
-      maxNormal : (2 - Math.pow(2, -10)) * Math.pow(2, 15),
-      minNormal : Math.pow(2, -14),
-      expMask : 0x1F,
-      mantissaMask : 0x3FF,
-      expShift : 10
+    'float16': {
+      mantissaBits: 10,
+      expBits: 5,
+      expBias: 15,
+      minSubnormal: Math.pow(2, -24),
+      maxNormal: (2 - Math.pow(2, -10)) * Math.pow(2, 15),
+      minNormal: Math.pow(2, -14),
+      expMask: 0x1F,
+      mantissaMask: 0x3FF,
+      expShift: 10
     },
-    'fp8e5m2' : {
-      mantissaBits : 2,
-      expBits : 5,
-      expBias : 15,
-      minSubnormal : Math.pow(2, -16),
-      maxNormal : (2 - Math.pow(2, -2)) * Math.pow(2, 15),
-      minNormal : Math.pow(2, -14),
-      expMask : 0x1F,
-      mantissaMask : 0x3,
-      expShift : 2
+    'fp8e5m2': {
+      mantissaBits: 2,
+      expBits: 5,
+      expBias: 15,
+      minSubnormal: Math.pow(2, -16),
+      maxNormal: (2 - Math.pow(2, -2)) * Math.pow(2, 15),
+      minNormal: Math.pow(2, -14),
+      expMask: 0x1F,
+      mantissaMask: 0x3,
+      expShift: 2
     },
-    'fp8e4m3' : {
-      mantissaBits : 3,
-      expBits : 4,
-      expBias : 7,
-      minSubnormal : Math.pow(2, -9),
-      maxNormal : (2 - Math.pow(2, -3)) * Math.pow(2, 7),
-      minNormal : Math.pow(2, -6),
-      expMask : 0xF,
-      mantissaMask : 0x7,
-      expShift : 3
+    'fp8e4m3': {
+      mantissaBits: 3,
+      expBits: 4,
+      expBias: 7,
+      minSubnormal: Math.pow(2, -9),
+      maxNormal: (2 - Math.pow(2, -3)) * Math.pow(2, 7),
+      minNormal: Math.pow(2, -6),
+      expMask: 0xF,
+      mantissaMask: 0x7,
+      expShift: 3
     }
   }[format];
 
   // Get the native format bits
   let formatBits;
   switch (format) {
-  case 'float32':
-    formatBits =
-        new Uint32Array(new Float32Array([ Math.abs(value) ]).buffer)[0];
-    break;
-  case 'tf32':
-    formatBits = floatToTF32(Math.abs(value));
-    break;
-  case 'bfloat16':
-    formatBits = floatToBfloat16(Math.abs(value));
-    break;
-  case 'float16':
-    formatBits = floatToFloat16(Math.abs(value));
-    break;
-  case 'fp8e5m2':
-    formatBits = floatToFP8E5M2(Math.abs(value));
-    break;
-  case 'fp8e4m3':
-    formatBits = floatToFP8E4M3(Math.abs(value));
-    break;
+    case 'float32':
+      formatBits =
+          new Uint32Array(new Float32Array([Math.abs(value)]).buffer)[0];
+      break;
+    case 'tf32':
+      formatBits = floatToTF32(Math.abs(value));
+      break;
+    case 'bfloat16':
+      formatBits = floatToBfloat16(Math.abs(value));
+      break;
+    case 'float16':
+      formatBits = floatToFloat16(Math.abs(value));
+      break;
+    case 'fp8e5m2':
+      formatBits = floatToFP8E5M2(Math.abs(value));
+      break;
+    case 'fp8e4m3':
+      formatBits = floatToFP8E4M3(Math.abs(value));
+      break;
   }
 
   const sign = value < 0 ? 1 : 0;
@@ -1325,26 +1325,26 @@ function analyzePrecision(value, format = 'float32') {
   // Check if the value is exactly zero
   if (value === 0) {
     return {
-      sign : sign,
-      exponent : 0,
-      mantissa : 0,
-      effectiveBits : 0,
-      isSubnormal : false,
-      isUnderflow : true,
-      minRepresentable : formatInfo.minSubnormal
+      sign: sign,
+      exponent: 0,
+      mantissa: 0,
+      effectiveBits: 0,
+      isSubnormal: false,
+      isUnderflow: true,
+      minRepresentable: formatInfo.minSubnormal
     };
   }
 
   // Check for special cases
   if (exponent === formatInfo.expMask) {
     return {
-      sign : sign,
-      exponent : Infinity,
-      mantissa : mantissa,
-      effectiveBits : mantissa === 0 ? 0 : formatInfo.mantissaBits,
-      isSubnormal : false,
-      isUnderflow : false,
-      minRepresentable : 0
+      sign: sign,
+      exponent: Infinity,
+      mantissa: mantissa,
+      effectiveBits: mantissa === 0 ? 0 : formatInfo.mantissaBits,
+      isSubnormal: false,
+      isUnderflow: false,
+      minRepresentable: 0
     };
   }
 
@@ -1384,13 +1384,13 @@ function analyzePrecision(value, format = 'float32') {
   }
 
   return {
-    sign : sign,
-    exponent : actualExponent,
-    mantissa : mantissa,
-    effectiveBits : effectiveBits,
-    isSubnormal : isSubnormal,
-    isUnderflow : Math.abs(value) < formatInfo.minSubnormal,
-    minRepresentable : precisionStep
+    sign: sign,
+    exponent: actualExponent,
+    mantissa: mantissa,
+    effectiveBits: effectiveBits,
+    isSubnormal: isSubnormal,
+    isUnderflow: Math.abs(value) < formatInfo.minSubnormal,
+    minRepresentable: precisionStep
   };
 }
 
@@ -1398,38 +1398,30 @@ function analyzePrecision(value, format = 'float32') {
 function getCompatibleFormats(value, bitsRequired, actualExponent) {
   // Format specifications: mantissa bits, min exponent (normal), max exponent
   const formats = {
-    'Float32' : {
-      mantissa : 23,
-      minExp : -126,
-      maxExp : 127,
-      minSubnormal : Math.pow(2, -149)
+    'Float32': {
+      mantissa: 23,
+      minExp: -126,
+      maxExp: 127,
+      minSubnormal: Math.pow(2, -149)
     },
-    'TF32' : {
-      mantissa : 10,
-      minExp : -126,
-      maxExp : 127,
-      minSubnormal : Math.pow(2, -136)
+    'TF32': {
+      mantissa: 10,
+      minExp: -126,
+      maxExp: 127,
+      minSubnormal: Math.pow(2, -136)
     },
-    'BFloat16' : {
-      mantissa : 7,
-      minExp : -126,
-      maxExp : 127,
-      minSubnormal : Math.pow(2, -133)
+    'BFloat16': {
+      mantissa: 7,
+      minExp: -126,
+      maxExp: 127,
+      minSubnormal: Math.pow(2, -133)
     },
-    'Float16' : {
-      mantissa : 10,
-      minExp : -14,
-      maxExp : 15,
-      minSubnormal : Math.pow(2, -24)
-    },
-    'FP8 E5M2' : {
-      mantissa : 2,
-      minExp : -14,
-      maxExp : 15,
-      minSubnormal : Math.pow(2, -16)
-    },
-    'FP8 E4M3' :
-        {mantissa : 3, minExp : -6, maxExp : 7, minSubnormal : Math.pow(2, -9)}
+    'Float16':
+        {mantissa: 10, minExp: -14, maxExp: 15, minSubnormal: Math.pow(2, -24)},
+    'FP8 E5M2':
+        {mantissa: 2, minExp: -14, maxExp: 15, minSubnormal: Math.pow(2, -16)},
+    'FP8 E4M3':
+        {mantissa: 3, minExp: -6, maxExp: 7, minSubnormal: Math.pow(2, -9)}
   };
 
   const absValue = Math.abs(value);
@@ -1474,41 +1466,41 @@ function getCompatibleFormats(value, bitsRequired, actualExponent) {
 function formatPrecisionDetails(value, format = 'float32') {
   const analysis = analyzePrecision(value, format);
   const formatInfo = {
-    'float32' : {
-      mantissaBits : 23,
-      expBits : 8,
-      expBias : 127,
-      description : 'IEEE 754 Single Precision'
+    'float32': {
+      mantissaBits: 23,
+      expBits: 8,
+      expBias: 127,
+      description: 'IEEE 754 Single Precision'
     },
-    'tf32' : {
-      mantissaBits : 10,
-      expBits : 8,
-      expBias : 127,
-      description : 'NVIDIA Tensor Float'
+    'tf32': {
+      mantissaBits: 10,
+      expBits: 8,
+      expBias: 127,
+      description: 'NVIDIA Tensor Float'
     },
-    'bfloat16' : {
-      mantissaBits : 7,
-      expBits : 8,
-      expBias : 127,
-      description : 'Brain Floating Point'
+    'bfloat16': {
+      mantissaBits: 7,
+      expBits: 8,
+      expBias: 127,
+      description: 'Brain Floating Point'
     },
-    'float16' : {
-      mantissaBits : 10,
-      expBits : 5,
-      expBias : 15,
-      description : 'IEEE 754 Half Precision'
+    'float16': {
+      mantissaBits: 10,
+      expBits: 5,
+      expBias: 15,
+      description: 'IEEE 754 Half Precision'
     },
-    'fp8e5m2' : {
-      mantissaBits : 2,
-      expBits : 5,
-      expBias : 15,
-      description : 'NVIDIA 8-bit E5M2'
+    'fp8e5m2': {
+      mantissaBits: 2,
+      expBits: 5,
+      expBias: 15,
+      description: 'NVIDIA 8-bit E5M2'
     },
-    'fp8e4m3' : {
-      mantissaBits : 3,
-      expBits : 4,
-      expBias : 7,
-      description : 'NVIDIA 8-bit E4M3'
+    'fp8e4m3': {
+      mantissaBits: 3,
+      expBits: 4,
+      expBias: 7,
+      description: 'NVIDIA 8-bit E4M3'
     }
   }[format];
 
@@ -1540,10 +1532,9 @@ function formatPrecisionDetails(value, format = 'float32') {
   // Get compatible formats for lossless conversion
   const compatibleFormats =
       getCompatibleFormats(value, analysis.effectiveBits, analysis.exponent);
-  const compatibleList =
-      compatibleFormats.length > 0
-          ? compatibleFormats.join(', ')
-          : 'None (value requires higher precision or wider range)';
+  const compatibleList = compatibleFormats.length > 0 ?
+      compatibleFormats.join(', ') :
+      'None (value requires higher precision or wider range)';
 
   return `
         <div class="precision-details">
