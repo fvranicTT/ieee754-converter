@@ -15,7 +15,9 @@ const {
   floatToFP8E5M2,
   fp8E5M2ToFloat,
   floatToFP8E4M3,
-  fp8E4M3ToFloat
+  fp8E4M3ToFloat,
+  analyzePrecision,
+  getCompatibleFormats
 } = require('./main.js');
 
 // ============================================================================
@@ -688,4 +690,272 @@ describe('Hex to Float Decoding', () => {
 
   it('FP8 E4M3 hex 0x40 = 2.0',
      () => { assert.strictEqual(fp8E4M3ToFloat(0x40), 2.0); });
+});
+
+// ============================================================================
+// Precision Analysis Tests
+// ============================================================================
+
+describe('Precision Analysis - Bits Required', () => {
+  it('1.0 requires 0 mantissa bits (exact power of 2)', () => {
+    const analysis = analyzePrecision(1.0, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 0);
+    assert.strictEqual(analysis.exponent, 0);
+    assert.strictEqual(analysis.isSubnormal, false);
+  });
+
+  it('2.0 requires 0 mantissa bits (exact power of 2)', () => {
+    const analysis = analyzePrecision(2.0, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 0);
+    assert.strictEqual(analysis.exponent, 1);
+  });
+
+  it('0.5 requires 0 mantissa bits (exact power of 2)', () => {
+    const analysis = analyzePrecision(0.5, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 0);
+    assert.strictEqual(analysis.exponent, -1);
+  });
+
+  it('1.5 requires 1 mantissa bit', () => {
+    const analysis = analyzePrecision(1.5, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 1);
+    assert.strictEqual(analysis.exponent, 0);
+  });
+
+  it('1.25 requires 2 mantissa bits', () => {
+    const analysis = analyzePrecision(1.25, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 2);
+  });
+
+  it('1.75 requires 2 mantissa bits', () => {
+    const analysis = analyzePrecision(1.75, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 2);
+  });
+
+  it('1.125 requires 3 mantissa bits', () => {
+    const analysis = analyzePrecision(1.125, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 3);
+  });
+
+  it('1.0625 requires 4 mantissa bits', () => {
+    const analysis = analyzePrecision(1.0625, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 4);
+  });
+
+  it('3.14159265 requires many mantissa bits (irrational approximation)',
+     () => {
+       const analysis = analyzePrecision(3.14159265, 'float32');
+       assert.ok(analysis.effectiveBits >= 20,
+                 `Expected >= 20 bits, got ${analysis.effectiveBits}`);
+     });
+
+  it('Zero requires 0 bits', () => {
+    const analysis = analyzePrecision(0.0, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 0);
+  });
+
+  it('Negative values work correctly', () => {
+    const analysis = analyzePrecision(-1.5, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 1);
+    assert.strictEqual(analysis.sign, 1);
+  });
+
+  it('256 requires 0 mantissa bits (power of 2)', () => {
+    const analysis = analyzePrecision(256.0, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 0);
+    assert.strictEqual(analysis.exponent, 8);
+  });
+
+  it('320 requires 2 mantissa bits (256 * 1.25)', () => {
+    const analysis = analyzePrecision(320.0, 'float32');
+    assert.strictEqual(analysis.effectiveBits, 2);
+    assert.strictEqual(analysis.exponent, 8);
+  });
+});
+
+describe('Precision Analysis - Exponent Range', () => {
+  it('Large value 1e38 has exponent ~126', () => {
+    const analysis = analyzePrecision(1e38, 'float32');
+    assert.ok(analysis.exponent >= 125 && analysis.exponent <= 127);
+  });
+
+  it('Small value 1e-38 has negative exponent ~-126', () => {
+    const analysis = analyzePrecision(1e-38, 'float32');
+    assert.ok(analysis.exponent <= -125);
+  });
+
+  it('Value 65504 (Float16 max) has exponent 15', () => {
+    const analysis = analyzePrecision(65504, 'float32');
+    assert.strictEqual(analysis.exponent, 15);
+  });
+
+  it('Value 240 (FP8 E4M3 max) has exponent 7', () => {
+    const analysis = analyzePrecision(240, 'float32');
+    assert.strictEqual(analysis.exponent, 7);
+  });
+});
+
+describe('Precision Analysis - Special Values', () => {
+  it('Infinity is detected', () => {
+    const analysis = analyzePrecision(Infinity, 'float32');
+    assert.strictEqual(analysis.exponent, Infinity);
+    assert.strictEqual(analysis.mantissa, 0);
+  });
+
+  it('Negative Infinity is detected', () => {
+    const analysis = analyzePrecision(-Infinity, 'float32');
+    assert.strictEqual(analysis.exponent, Infinity);
+    assert.strictEqual(analysis.sign, 1);
+  });
+
+  it('NaN is detected', () => {
+    const analysis = analyzePrecision(NaN, 'float32');
+    assert.strictEqual(analysis.exponent, Infinity);
+    assert.ok(analysis.mantissa !== 0);
+  });
+});
+
+describe('Compatible Formats Analysis', () => {
+  it('1.0 is compatible with all formats', () => {
+    const formats = getCompatibleFormats(1.0, 0, 0);
+    assert.ok(formats.includes('Float32'));
+    assert.ok(formats.includes('BFloat16'));
+    assert.ok(formats.includes('TF32'));
+    assert.ok(formats.includes('Float16'));
+    assert.ok(formats.includes('FP8 E5M2'));
+    assert.ok(formats.includes('FP8 E4M3'));
+  });
+
+  it('1.5 (1 bit) is compatible with all formats', () => {
+    const formats = getCompatibleFormats(1.5, 1, 0);
+    assert.ok(formats.includes('Float32'));
+    assert.ok(formats.includes('FP8 E5M2'));
+    assert.ok(formats.includes('FP8 E4M3'));
+  });
+
+  it('Value needing 3 bits is NOT compatible with FP8 E5M2 (2-bit mantissa)',
+     () => {
+       const formats = getCompatibleFormats(1.125, 3, 0);
+       assert.ok(formats.includes('Float32'));
+       assert.ok(formats.includes('Float16'));
+       assert.ok(formats.includes('FP8 E4M3'));
+       assert.ok(!formats.includes('FP8 E5M2'));
+     });
+
+  it('Value needing 8 bits is NOT compatible with BFloat16 (7-bit mantissa)',
+     () => {
+       const formats = getCompatibleFormats(1.00390625, 8, 0);
+       assert.ok(formats.includes('Float32'));
+       assert.ok(formats.includes('TF32'));
+       assert.ok(formats.includes('Float16'));
+       assert.ok(!formats.includes('BFloat16'));
+       assert.ok(!formats.includes('FP8 E5M2'));
+       assert.ok(!formats.includes('FP8 E4M3'));
+     });
+
+  it('Large exponent (e.g., 100) excludes Float16 and FP8 formats', () => {
+    const formats = getCompatibleFormats(1e30, 0, 100);
+    assert.ok(formats.includes('Float32'));
+    assert.ok(formats.includes('TF32'));
+    assert.ok(formats.includes('BFloat16'));
+    assert.ok(!formats.includes('Float16'));
+    assert.ok(!formats.includes('FP8 E5M2'));
+    assert.ok(!formats.includes('FP8 E4M3'));
+  });
+
+  it('Exponent 16 excludes Float16, FP8 E5M2, FP8 E4M3', () => {
+    const formats = getCompatibleFormats(65536, 0, 16);
+    assert.ok(formats.includes('Float32'));
+    assert.ok(formats.includes('TF32'));
+    assert.ok(formats.includes('BFloat16'));
+    assert.ok(!formats.includes('Float16'));
+    assert.ok(!formats.includes('FP8 E5M2'));
+    assert.ok(!formats.includes('FP8 E4M3'));
+  });
+
+  it('Exponent 8 excludes FP8 E4M3 (max exp 7)', () => {
+    const formats = getCompatibleFormats(256, 0, 8);
+    assert.ok(formats.includes('Float32'));
+    assert.ok(formats.includes('Float16'));
+    assert.ok(formats.includes('FP8 E5M2'));
+    assert.ok(!formats.includes('FP8 E4M3'));
+  });
+
+  it('Exponent -15 excludes Float16 and FP8 (need subnormal or out of range)',
+     () => {
+       const formats = getCompatibleFormats(Math.pow(2, -15), 0, -15);
+       assert.ok(formats.includes('Float32'));
+       assert.ok(formats.includes('TF32'));
+       assert.ok(formats.includes('BFloat16'));
+       // Float16 and FP8 E5M2 might represent as subnormal
+     });
+
+  it('Zero is compatible with all formats', () => {
+    const formats = getCompatibleFormats(0, 0, 0);
+    assert.strictEqual(formats.length, 6);
+  });
+
+  it('Infinity is compatible with all formats', () => {
+    const formats = getCompatibleFormats(Infinity, 0, 0);
+    assert.strictEqual(formats.length, 6);
+  });
+
+  it('NaN is compatible with all formats', () => {
+    const formats = getCompatibleFormats(NaN, 0, 0);
+    assert.strictEqual(formats.length, 6);
+  });
+});
+
+describe('Precision Analysis for Different Formats', () => {
+  it('Float16 analysis works correctly', () => {
+    const analysis = analyzePrecision(1.5, 'float16');
+    assert.strictEqual(analysis.effectiveBits, 1);
+  });
+
+  it('BFloat16 analysis works correctly', () => {
+    const analysis = analyzePrecision(1.5, 'bfloat16');
+    assert.strictEqual(analysis.effectiveBits, 1);
+  });
+
+  it('FP8 E5M2 analysis works correctly', () => {
+    const analysis = analyzePrecision(1.5, 'fp8e5m2');
+    assert.strictEqual(analysis.effectiveBits, 1);
+  });
+
+  it('FP8 E4M3 analysis works correctly', () => {
+    const analysis = analyzePrecision(1.5, 'fp8e4m3');
+    assert.strictEqual(analysis.effectiveBits, 1);
+  });
+
+  it('TF32 analysis works correctly', () => {
+    const analysis = analyzePrecision(1.5, 'tf32');
+    assert.strictEqual(analysis.effectiveBits, 1);
+  });
+});
+
+describe('Precision Step (ULP) Calculation', () => {
+  it('ULP at exponent 0 for Float32 is 2^-23', () => {
+    const analysis = analyzePrecision(1.0, 'float32');
+    assertClose(analysis.minRepresentable, Math.pow(2, -23), 1e-15);
+  });
+
+  it('ULP at exponent 8 for Float32 is 2^-15', () => {
+    const analysis = analyzePrecision(256.0, 'float32');
+    assertClose(analysis.minRepresentable, Math.pow(2, -15), 1e-12);
+  });
+
+  it('ULP at exponent -10 for Float32 is 2^-33', () => {
+    const analysis = analyzePrecision(Math.pow(2, -10), 'float32');
+    assertClose(analysis.minRepresentable, Math.pow(2, -33), 1e-18);
+  });
+
+  it('ULP for Float16 at exponent 0 is 2^-10', () => {
+    const analysis = analyzePrecision(1.0, 'float16');
+    assertClose(analysis.minRepresentable, Math.pow(2, -10), 1e-8);
+  });
+
+  it('ULP for BFloat16 at exponent 0 is 2^-7', () => {
+    const analysis = analyzePrecision(1.0, 'bfloat16');
+    assertClose(analysis.minRepresentable, Math.pow(2, -7), 1e-5);
+  });
 });

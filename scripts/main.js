@@ -911,9 +911,6 @@ function convertHexToFloat() {
     return;
   }
 
-  showIntegerFormatCards();
-  showFloatFormatCards();
-
   // Parse hex as a number (bits)
   let bits = parseInt(hexInput, 16);
 
@@ -930,6 +927,56 @@ function convertHexToFloat() {
   let isValidUint32 = hexInput.length <= 8;   // Up to 8 hex digits
   let isValidFp8E5M2 = hexInput.length <= 2;  // Up to 2 hex digits
   let isValidFp8E4M3 = hexInput.length <= 2;  // Up to 2 hex digits
+
+  // Show/hide format cards based on validity
+  if (isValidFloat32)
+    showElements([ 'float32' ]);
+  else
+    hideElements([ 'float32' ]);
+  if (isValidFloat16)
+    showElements([ 'float16' ]);
+  else
+    hideElements([ 'float16' ]);
+  if (isValidBfloat16)
+    showElements([ 'bfloat16' ]);
+  else
+    hideElements([ 'bfloat16' ]);
+  if (isValidTF32)
+    showElements([ 'tf32' ]);
+  else
+    hideElements([ 'tf32' ]);
+  if (isValidFp8E5M2)
+    showElements([ 'fp8-e5m2' ]);
+  else
+    hideElements([ 'fp8-e5m2' ]);
+  if (isValidFp8E4M3)
+    showElements([ 'fp8-e4m3' ]);
+  else
+    hideElements([ 'fp8-e4m3' ]);
+  if (isValidInt8)
+    showElements([ 'int8' ]);
+  else
+    hideElements([ 'int8' ]);
+  if (isValidUint8)
+    showElements([ 'uint8' ]);
+  else
+    hideElements([ 'uint8' ]);
+  if (isValidInt16)
+    showElements([ 'int16' ]);
+  else
+    hideElements([ 'int16' ]);
+  if (isValidUint16)
+    showElements([ 'uint16' ]);
+  else
+    hideElements([ 'uint16' ]);
+  if (isValidInt32)
+    showElements([ 'int32' ]);
+  else
+    hideElements([ 'int32' ]);
+  if (isValidUint32)
+    showElements([ 'uint32' ]);
+  else
+    hideElements([ 'uint32' ]);
 
   // Float32 (32 bits, 8 hex digits)
   let float32Val = "Invalid";
@@ -1099,32 +1146,79 @@ function convertHexToFloat() {
     document.getElementById('float32-colored-bits').innerHTML =
         formatBinary(float32Binary, 8, 23);
     document.getElementById('float32-binary').textContent = float32Binary;
-    document.getElementById('float32-hex').textContent = '0x' + hexInput;
-    document.getElementById('float32-value').textContent = float32Val;
+    document.getElementById('float32-hex').textContent =
+        '0x' + hexInput.padStart(8, '0');
+    document.getElementById('float32-input').textContent = '(from hex)';
+    document.getElementById('float32-stored').textContent = float32Val;
+    document.getElementById('float32-error').textContent = 'N/A';
+    document.getElementById('float32-precision').innerHTML = '';
   }
 
   if (isValidFloat16) {
     document.getElementById('float16-colored-bits').innerHTML =
         formatBinary(float16Binary, 5, 10);
     document.getElementById('float16-binary').textContent = float16Binary;
-    document.getElementById('float16-hex').textContent = '0x' + hexInput;
-    document.getElementById('float16-value').textContent = float16Val;
+    document.getElementById('float16-hex').textContent =
+        '0x' + hexInput.padStart(4, '0');
+    document.getElementById('float16-input').textContent = '(from hex)';
+    document.getElementById('float16-stored').textContent = float16Val;
+    document.getElementById('float16-error').textContent = 'N/A';
+    document.getElementById('float16-precision').innerHTML = '';
   }
 
   if (isValidBfloat16) {
     document.getElementById('bfloat16-colored-bits').innerHTML =
         formatBinary(bfloat16Binary, 8, 7);
     document.getElementById('bfloat16-binary').textContent = bfloat16Binary;
-    document.getElementById('bfloat16-hex').textContent = '0x' + hexInput;
-    document.getElementById('bfloat16-value').textContent = bfloat16Val;
+    document.getElementById('bfloat16-hex').textContent =
+        '0x' + hexInput.padStart(4, '0');
+    document.getElementById('bfloat16-input').textContent = '(from hex)';
+    document.getElementById('bfloat16-stored').textContent = bfloat16Val;
+    document.getElementById('bfloat16-error').textContent = 'N/A';
+    document.getElementById('bfloat16-precision').innerHTML = '';
   }
 
   if (isValidTF32) {
     document.getElementById('tf32-colored-bits').innerHTML =
         formatBinary(tf32Binary, 8, 10);
     document.getElementById('tf32-binary').textContent = tf32Binary;
-    document.getElementById('tf32-hex').textContent = '0x' + hexInput;
-    document.getElementById('tf32-value').textContent = tf32Val;
+    document.getElementById('tf32-hex').textContent =
+        '0x' + hexInput.padStart(5, '0');
+    document.getElementById('tf32-input').textContent = '(from hex)';
+    document.getElementById('tf32-stored').textContent = tf32Val;
+    document.getElementById('tf32-error').textContent = 'N/A';
+    document.getElementById('tf32-precision').innerHTML = '';
+  }
+
+  // Update FP8 fields
+  if (isValidFp8E5M2) {
+    let fp8E5M2Bits = bits & 0xFF;
+    let fp8E5M2Val = formatDecimal(fp8E5M2ToFloat(fp8E5M2Bits));
+    let fp8E5M2Binary = toBinaryString(fp8E5M2Bits, 8);
+    document.getElementById('fp8-e5m2-colored-bits').innerHTML =
+        formatBinary(fp8E5M2Binary, 5, 2);
+    document.getElementById('fp8-e5m2-binary').textContent = fp8E5M2Binary;
+    document.getElementById('fp8-e5m2-hex').textContent =
+        '0x' + hexInput.padStart(2, '0');
+    document.getElementById('fp8-e5m2-input').textContent = '(from hex)';
+    document.getElementById('fp8-e5m2-stored').textContent = fp8E5M2Val;
+    document.getElementById('fp8-e5m2-error').textContent = 'N/A';
+    document.getElementById('fp8-e5m2-precision').innerHTML = '';
+  }
+
+  if (isValidFp8E4M3) {
+    let fp8E4M3Bits = bits & 0xFF;
+    let fp8E4M3Val = formatDecimal(fp8E4M3ToFloat(fp8E4M3Bits));
+    let fp8E4M3Binary = toBinaryString(fp8E4M3Bits, 8);
+    document.getElementById('fp8-e4m3-colored-bits').innerHTML =
+        formatBinary(fp8E4M3Binary, 4, 3);
+    document.getElementById('fp8-e4m3-binary').textContent = fp8E4M3Binary;
+    document.getElementById('fp8-e4m3-hex').textContent =
+        '0x' + hexInput.padStart(2, '0');
+    document.getElementById('fp8-e4m3-input').textContent = '(from hex)';
+    document.getElementById('fp8-e4m3-stored').textContent = fp8E4M3Val;
+    document.getElementById('fp8-e4m3-error').textContent = 'N/A';
+    document.getElementById('fp8-e4m3-precision').innerHTML = '';
   }
 }
 
@@ -1254,30 +1348,24 @@ function analyzePrecision(value, format = 'float32') {
     };
   }
 
-  // Calculate effective bits and find significant bit positions
+  // Calculate effective bits: minimum mantissa bits needed to represent this
+  // value exactly This is determined by counting trailing zeros in the mantissa
   let effectiveBits;
   let precisionStep;
 
-  if (exponent !== 0) {
-    // For normal numbers, find the position of the last significant bit
-    let lastSignificantBit = -1;
-    for (let i = formatInfo.mantissaBits - 1; i >= 0; i--) {
-      if (mantissa & (1 << i)) {
-        lastSignificantBit = i;
-        break;
-      }
-    }
-    effectiveBits = lastSignificantBit >= 0 ? lastSignificantBit + 1 : 1;
-  } else if (mantissa !== 0) {
-    // For subnormal numbers, find first significant bit
-    let firstSignificantBit = formatInfo.mantissaBits - 1;
-    while (firstSignificantBit >= 0 &&
-           !(mantissa & (1 << firstSignificantBit))) {
-      firstSignificantBit--;
-    }
-    effectiveBits = firstSignificantBit + 1;
-  } else {
+  if (mantissa === 0) {
+    // Value is an exact power of 2 (or zero), no mantissa bits needed
     effectiveBits = 0;
+  } else {
+    // Count trailing zeros to find lowest set bit
+    let trailingZeros = 0;
+    let temp = mantissa;
+    while ((temp & 1) === 0) {
+      temp >>>= 1;
+      trailingZeros++;
+    }
+    // Bits needed = total mantissa bits - trailing zeros
+    effectiveBits = formatInfo.mantissaBits - trailingZeros;
   }
 
   // Determine if it's a subnormal number
@@ -1304,6 +1392,82 @@ function analyzePrecision(value, format = 'float32') {
     isUnderflow : Math.abs(value) < formatInfo.minSubnormal,
     minRepresentable : precisionStep
   };
+}
+
+// Determine which formats can exactly represent a value
+function getCompatibleFormats(value, bitsRequired, actualExponent) {
+  // Format specifications: mantissa bits, min exponent (normal), max exponent
+  const formats = {
+    'Float32' : {
+      mantissa : 23,
+      minExp : -126,
+      maxExp : 127,
+      minSubnormal : Math.pow(2, -149)
+    },
+    'TF32' : {
+      mantissa : 10,
+      minExp : -126,
+      maxExp : 127,
+      minSubnormal : Math.pow(2, -136)
+    },
+    'BFloat16' : {
+      mantissa : 7,
+      minExp : -126,
+      maxExp : 127,
+      minSubnormal : Math.pow(2, -133)
+    },
+    'Float16' : {
+      mantissa : 10,
+      minExp : -14,
+      maxExp : 15,
+      minSubnormal : Math.pow(2, -24)
+    },
+    'FP8 E5M2' : {
+      mantissa : 2,
+      minExp : -14,
+      maxExp : 15,
+      minSubnormal : Math.pow(2, -16)
+    },
+    'FP8 E4M3' :
+        {mantissa : 3, minExp : -6, maxExp : 7, minSubnormal : Math.pow(2, -9)}
+  };
+
+  const absValue = Math.abs(value);
+  const compatible = [];
+
+  // Handle special cases
+  if (!isFinite(value)) {
+    // Infinity and NaN can be represented in all formats
+    return Object.keys(formats);
+  }
+
+  if (value === 0) {
+    // Zero can be represented in all formats
+    return Object.keys(formats);
+  }
+
+  for (const [name, spec] of Object.entries(formats)) {
+    // Check mantissa bits
+    if (bitsRequired > spec.mantissa) {
+      continue;
+    }
+
+    // Check exponent range
+    if (actualExponent >= spec.minExp && actualExponent <= spec.maxExp) {
+      // Normal number fits
+      compatible.push(name);
+    } else if (absValue >= spec.minSubnormal && actualExponent < spec.minExp) {
+      // Could be subnormal in this format - check if mantissa precision is
+      // sufficient For subnormals, we lose precision as value gets smaller
+      const subnormalShift = spec.minExp - actualExponent;
+      const effectiveMantissaBits = spec.mantissa - subnormalShift;
+      if (effectiveMantissaBits >= bitsRequired) {
+        compatible.push(name + ' (subnormal)');
+      }
+    }
+  }
+
+  return compatible;
 }
 
 // Format the precision analysis results
@@ -1373,13 +1537,21 @@ function formatPrecisionDetails(value, format = 'float32') {
         'Using normalized representation with implicit leading 1';
   }
 
+  // Get compatible formats for lossless conversion
+  const compatibleFormats =
+      getCompatibleFormats(value, analysis.effectiveBits, analysis.exponent);
+  const compatibleList =
+      compatibleFormats.length > 0
+          ? compatibleFormats.join(', ')
+          : 'None (value requires higher precision or wider range)';
+
   return `
         <div class="precision-details">
             <br><br>
             <strong>Precision Analysis:</strong><br>
-            <div class="precision-item" title="Number of significant bits in the mantissa">
-                <strong>Effective Precision:</strong> ${
-      analysis.effectiveBits}/${formatInfo.mantissaBits} bits
+            <div class="precision-item" title="Minimum mantissa bits required to represent this exact value (fewer bits = can fit in lower precision formats)">
+                <strong>Bits Required:</strong> ${analysis.effectiveBits}/${
+      formatInfo.mantissaBits} bits
             </div>
             <div class="precision-item" title="The power of 2 in the binary scientific notation">
                 <strong>Binary Exponent:</strong> ${analysis.exponent} (bias: ${
@@ -1391,6 +1563,9 @@ function formatPrecisionDetails(value, format = 'float32') {
             <div class="precision-item" title="The smallest possible change in value at this magnitude (ULP)">
                 <strong>Precision Step:</strong> ${
       analysis.minRepresentable.toExponential(5)}
+            </div>
+            <div class="precision-item" title="Formats that can represent this exact value without loss">
+                <strong>Lossless Formats:</strong> ${compatibleList}
             </div>
         </div>
         <div class="bit-info" title="Distribution of bits in ${
@@ -1427,6 +1602,8 @@ if (typeof module !== 'undefined' && module.exports) {
     calculateLoss,
     formatDecimal,
     analyzePrecision,
-    formatPrecisionDetails
+    formatPrecisionDetails,
+    analyzePrecision,
+    getCompatibleFormats
   };
 }
