@@ -1575,29 +1575,35 @@ function formatPrecisionDetails(value, format = 'float32') {
       'None (value requires higher precision or wider range)';
 
   return `
-        <strong class="precision-title">Precision Analysis</strong>
+        <strong class="precision-title" title="Analysis of how this value is represented in ${
+      formatInfo
+          .description} format. Hover over each item for details.">Precision Analysis</strong>
         <div class="precision-details">
-            <div class="precision-item" title="Minimum mantissa bits required to represent this exact value (fewer bits = can fit in lower precision formats)">
+            <div class="precision-item" title="Bits Required: Shows how many mantissa bits the STORED value uses (not the original input). After rounding, the stored value may have trailing zeros, requiring fewer bits. Example: 3.5 only needs 1 bit (1.11 × 2¹), while 3.14159... needs all available bits.">
                 <strong>Bits Required:</strong> ${analysis.effectiveBits}/${
       formatInfo.mantissaBits} bits
             </div>
-            <div class="precision-item" title="The power of 2 in the binary scientific notation">
+            <div class="precision-item" title="Binary Exponent: The power of 2 that scales the mantissa. In scientific notation: value = 1.mantissa × 2^exponent. The bias (${
+      formatInfo
+          .expBias}) is subtracted from the stored exponent to allow negative powers.">
                 <strong>Binary Exponent:</strong> ${analysis.exponent} (bias: ${
       formatInfo.expBias})
             </div>
             <div class="precision-item" title="${representationTitle}">
                 <strong>Representation:</strong> ${representationStatus}
             </div>
-            <div class="precision-item" title="The smallest possible change in value at this magnitude (ULP)">
+            <div class="precision-item" title="Precision Step (ULP - Unit in Last Place): The smallest possible change in value at this magnitude. Adding or subtracting this amount changes the last mantissa bit. Larger values have larger steps; smaller values have smaller steps.">
                 <strong>Precision Step:</strong> ${
       analysis.minRepresentable.toExponential(5)}
             </div>
-            <div class="precision-item" title="Formats that can represent this exact value without loss">
+            <div class="precision-item" title="Lossless Formats: Formats that can store this EXACT stored value without any additional rounding. Based on both the bits required and whether the exponent fits within each format's range.">
                 <strong>Lossless Formats:</strong> ${compatibleList}
             </div>
         </div>
-        <div class="bit-info" title="Distribution of bits in ${
-      formatInfo.description}">
+        <div class="bit-info" title="Bit allocation in ${
+      formatInfo.description}: 1 sign bit (positive/negative), ${
+      formatInfo.expBits} exponent bits (range/magnitude), ${
+      formatInfo.mantissaBits} mantissa bits (precision).">
             <span><strong>Sign:</strong> 1 bit</span>
             <span><strong>Exponent:</strong> ${formatInfo.expBits} bits</span>
             <span><strong>Mantissa:</strong> ${

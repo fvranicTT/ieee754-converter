@@ -546,6 +546,27 @@ button:active {
   margin: 0;
 }
 
+/* Precision item tooltips */
+.precision-item,
+.precision-title,
+.bit-info {
+  position: relative;
+  cursor: help;
+}
+
+.precision-item:hover,
+.precision-title:hover,
+.bit-info:hover {
+  background: rgba(122, 158, 184, 0.1);
+  border-radius: 4px;
+}
+
+.precision-item {
+  padding: 4px 8px;
+  margin: 2px -8px;
+  transition: background 0.2s ease;
+}
+
 /* ============================================
    Animations
    ============================================ */
