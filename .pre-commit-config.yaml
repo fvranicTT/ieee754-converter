@@ -10,12 +10,12 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=500']
 
-  # Code formatting with clang-format
+  # Code formatting with clang-format (JS only - clang-format breaks CSS)
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v18.1.8
     hooks:
       - id: clang-format
-        types_or: [javascript, css]
+        types: [javascript]
 
   # Run tests locally (CI has a dedicated test job with matrix testing)
   - repo: local
