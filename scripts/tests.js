@@ -110,9 +110,10 @@ describe('BFloat16 Conversions', () => {
 
   it('Convert NaN to BFloat16 and back', () => {
     const bits = floatToBfloat16(NaN);
-    assert.ok((bits & 0x7F80) === 0x7F80, 'Exponent should be all 1s');
-    assert.ok((bits & 0x007F) !== 0, 'Mantissa should be non-zero for NaN');
-    assert.ok(Number.isNaN(bfloat16ToFloat32(bits)));
+    assert.strictEqual(bits & 0x7F80, 0x7F80, 'Exponent should be all 1s');
+    assert.notStrictEqual(
+        bits & 0x007F, 0, 'Mantissa should be non-zero for NaN');
+    assert.ok(Number.isNaN(bfloat16ToFloat32(bits)), 'Result should be NaN');
   });
 
   it('Convert large value 1e38 to BFloat16', () => {
@@ -157,13 +158,15 @@ describe('Float16 (FP16) Conversions', () => {
   it('Convert 0.0 to Float16 and back', () => {
     const bits = floatToFloat16(0.0);
     assertHex(bits, 0x0000);
-    assert.ok(isPositiveZero(float16ToFloat32(bits)));
+    assert.ok(
+        isPositiveZero(float16ToFloat32(bits)), 'Should be positive zero');
   });
 
   it('Convert -0.0 to Float16 and back', () => {
     const bits = floatToFloat16(-0.0);
     assertHex(bits, 0x8000);
-    assert.ok(isNegativeZero(float16ToFloat32(bits)));
+    assert.ok(
+        isNegativeZero(float16ToFloat32(bits)), 'Should be negative zero');
   });
 
   it('Convert 1.0 to Float16 and back', () => {
@@ -210,9 +213,10 @@ describe('Float16 (FP16) Conversions', () => {
 
   it('Convert NaN to Float16 and back', () => {
     const bits = floatToFloat16(NaN);
-    assert.ok((bits & 0x7C00) === 0x7C00, 'Exponent should be all 1s');
-    assert.ok((bits & 0x03FF) !== 0, 'Mantissa should be non-zero for NaN');
-    assert.ok(Number.isNaN(float16ToFloat32(bits)));
+    assert.strictEqual(bits & 0x7C00, 0x7C00, 'Exponent should be all 1s');
+    assert.notStrictEqual(
+        bits & 0x03FF, 0, 'Mantissa should be non-zero for NaN');
+    assert.ok(Number.isNaN(float16ToFloat32(bits)), 'Result should be NaN');
   });
 
   it('Convert 100000 to Float16 (overflow to infinity)', () => {
@@ -249,7 +253,8 @@ describe('Float16 (FP16) Conversions', () => {
     const result = float16ToFloat32(bits);
     assert.ok(
         result === 1.0 || result === 1.0009765625 ||
-        Math.abs(result - value) < 0.002);
+            Math.abs(result - value) < 0.002,
+        `Rounding result ${result} should be close to ${value}`);
   });
 
   it('Hex 0x4248 decodes to 3.140625', () => {
@@ -271,13 +276,13 @@ describe('TF32 Conversions', () => {
   it('Convert 0.0 to TF32 and back', () => {
     const bits = floatToTF32(0.0);
     assertHex(bits, 0x00000);
-    assert.ok(isPositiveZero(tf32ToFloat32(bits)));
+    assert.ok(isPositiveZero(tf32ToFloat32(bits)), 'Should be positive zero');
   });
 
   it('Convert -0.0 to TF32 and back', () => {
     const bits = floatToTF32(-0.0);
     assertHex(bits, 0x40000);
-    assert.ok(isNegativeZero(tf32ToFloat32(bits)));
+    assert.ok(isNegativeZero(tf32ToFloat32(bits)), 'Should be negative zero');
   });
 
   it('Convert 1.0 to TF32 and back', () => {
@@ -312,7 +317,7 @@ describe('TF32 Conversions', () => {
 
   it('Convert NaN to TF32 and back', () => {
     const bits = floatToTF32(NaN);
-    assert.ok(Number.isNaN(tf32ToFloat32(bits)));
+    assert.ok(Number.isNaN(tf32ToFloat32(bits)), 'Result should be NaN');
   });
 
   it('Convert 3.14159 to TF32 (some precision loss)', () => {
@@ -351,13 +356,13 @@ describe('FP8 E5M2 Conversions', () => {
   it('Convert 0.0 to FP8 E5M2 and back', () => {
     const bits = floatToFP8E5M2(0.0);
     assertHex(bits, 0x00);
-    assert.ok(isPositiveZero(fp8E5M2ToFloat(bits)));
+    assert.ok(isPositiveZero(fp8E5M2ToFloat(bits)), 'Should be positive zero');
   });
 
   it('Convert -0.0 to FP8 E5M2 and back', () => {
     const bits = floatToFP8E5M2(-0.0);
     assertHex(bits, 0x80);
-    assert.ok(isNegativeZero(fp8E5M2ToFloat(bits)));
+    assert.ok(isNegativeZero(fp8E5M2ToFloat(bits)), 'Should be negative zero');
   });
 
   it('Convert 1.0 to FP8 E5M2 and back', () => {
@@ -404,9 +409,10 @@ describe('FP8 E5M2 Conversions', () => {
 
   it('Convert NaN to FP8 E5M2 and back', () => {
     const bits = floatToFP8E5M2(NaN);
-    assert.ok((bits & 0x7C) === 0x7C, 'Exponent should be all 1s');
-    assert.ok((bits & 0x03) !== 0, 'Mantissa should be non-zero for NaN');
-    assert.ok(Number.isNaN(fp8E5M2ToFloat(bits)));
+    assert.strictEqual(bits & 0x7C, 0x7C, 'Exponent should be all 1s');
+    assert.notStrictEqual(
+        bits & 0x03, 0, 'Mantissa should be non-zero for NaN');
+    assert.ok(Number.isNaN(fp8E5M2ToFloat(bits)), 'Result should be NaN');
   });
 
   it('Overflow to infinity in FP8 E5M2', () => {
@@ -450,13 +456,13 @@ describe('FP8 E4M3 Conversions', () => {
   it('Convert 0.0 to FP8 E4M3 and back', () => {
     const bits = floatToFP8E4M3(0.0);
     assertHex(bits, 0x00);
-    assert.ok(isPositiveZero(fp8E4M3ToFloat(bits)));
+    assert.ok(isPositiveZero(fp8E4M3ToFloat(bits)), 'Should be positive zero');
   });
 
   it('Convert -0.0 to FP8 E4M3 and back', () => {
     const bits = floatToFP8E4M3(-0.0);
     assertHex(bits, 0x80);
-    assert.ok(isNegativeZero(fp8E4M3ToFloat(bits)));
+    assert.ok(isNegativeZero(fp8E4M3ToFloat(bits)), 'Should be negative zero');
   });
 
   it('Convert 1.0 to FP8 E4M3 and back', () => {
@@ -509,9 +515,10 @@ describe('FP8 E4M3 Conversions', () => {
 
   it('Convert NaN to FP8 E4M3 and back', () => {
     const bits = floatToFP8E4M3(NaN);
-    assert.ok((bits & 0x78) === 0x78, 'Exponent should be all 1s');
-    assert.ok((bits & 0x07) !== 0, 'Mantissa should be non-zero for NaN');
-    assert.ok(Number.isNaN(fp8E4M3ToFloat(bits)));
+    assert.strictEqual(bits & 0x78, 0x78, 'Exponent should be all 1s');
+    assert.notStrictEqual(
+        bits & 0x07, 0, 'Mantissa should be non-zero for NaN');
+    assert.ok(Number.isNaN(fp8E4M3ToFloat(bits)), 'Result should be NaN');
   });
 
   it('Overflow to infinity in FP8 E4M3', () => {
@@ -621,7 +628,9 @@ describe('Edge Cases and Boundary Values', () => {
     const largeVal = 1e38;
     const bits = floatToBfloat16(largeVal);
     const result = bfloat16ToFloat32(bits);
-    assert.ok(Math.abs(result) > 1e37, 'Should handle very large values');
+    assert.ok(
+        Math.abs(result) > 1e37,
+        `Result ${result} should be > 1e37 for large values`);
   });
 
   it('FP8 E5M2 max normal value ~57344', () => {
@@ -793,12 +802,16 @@ describe('Precision Analysis - Bits Required', () => {
 describe('Precision Analysis - Exponent Range', () => {
   it('Large value 1e38 has exponent ~126', () => {
     const analysis = analyzePrecision(1e38, 'float32');
-    assert.ok(analysis.exponent >= 125 && analysis.exponent <= 127);
+    assert.ok(
+        analysis.exponent >= 125 && analysis.exponent <= 127,
+        `Exponent ${analysis.exponent} should be between 125 and 127`);
   });
 
   it('Small value 1e-38 has negative exponent ~-126', () => {
     const analysis = analyzePrecision(1e-38, 'float32');
-    assert.ok(analysis.exponent <= -125);
+    assert.ok(
+        analysis.exponent <= -125,
+        `Exponent ${analysis.exponent} should be <= -125`);
   });
 
   it('Value 65504 (Float16 max) has exponent 15', () => {
@@ -828,82 +841,82 @@ describe('Precision Analysis - Special Values', () => {
   it('NaN is detected', () => {
     const analysis = analyzePrecision(NaN, 'float32');
     assert.strictEqual(analysis.exponent, Infinity);
-    assert.ok(analysis.mantissa !== 0);
+    assert.notStrictEqual(analysis.mantissa, 0);
   });
 });
 
 describe('Compatible Formats Analysis', () => {
   it('1.0 is compatible with all formats', () => {
     const formats = getCompatibleFormats(1.0, 0, 0);
-    assert.ok(formats.includes('Float32'));
-    assert.ok(formats.includes('BFloat16'));
-    assert.ok(formats.includes('TF32'));
-    assert.ok(formats.includes('Float16'));
-    assert.ok(formats.includes('FP8 E5M2'));
-    assert.ok(formats.includes('FP8 E4M3'));
+    assert.ok(formats.includes('Float32'), 'Should include Float32');
+    assert.ok(formats.includes('BFloat16'), 'Should include BFloat16');
+    assert.ok(formats.includes('TF32'), 'Should include TF32');
+    assert.ok(formats.includes('Float16'), 'Should include Float16');
+    assert.ok(formats.includes('FP8 E5M2'), 'Should include FP8 E5M2');
+    assert.ok(formats.includes('FP8 E4M3'), 'Should include FP8 E4M3');
   });
 
   it('1.5 (1 bit) is compatible with all formats', () => {
     const formats = getCompatibleFormats(1.5, 1, 0);
-    assert.ok(formats.includes('Float32'));
-    assert.ok(formats.includes('FP8 E5M2'));
-    assert.ok(formats.includes('FP8 E4M3'));
+    assert.ok(formats.includes('Float32'), 'Should include Float32');
+    assert.ok(formats.includes('FP8 E5M2'), 'Should include FP8 E5M2');
+    assert.ok(formats.includes('FP8 E4M3'), 'Should include FP8 E4M3');
   });
 
   it('Value needing 3 bits is NOT compatible with FP8 E5M2 (2-bit mantissa)',
      () => {
        const formats = getCompatibleFormats(1.125, 3, 0);
-       assert.ok(formats.includes('Float32'));
-       assert.ok(formats.includes('Float16'));
-       assert.ok(formats.includes('FP8 E4M3'));
-       assert.ok(!formats.includes('FP8 E5M2'));
+       assert.ok(formats.includes('Float32'), 'Should include Float32');
+       assert.ok(formats.includes('Float16'), 'Should include Float16');
+       assert.ok(formats.includes('FP8 E4M3'), 'Should include FP8 E4M3');
+       assert.ok(!formats.includes('FP8 E5M2'), 'Should NOT include FP8 E5M2');
      });
 
   it('Value needing 8 bits is NOT compatible with BFloat16 (7-bit mantissa)',
      () => {
        const formats = getCompatibleFormats(1.00390625, 8, 0);
-       assert.ok(formats.includes('Float32'));
-       assert.ok(formats.includes('TF32'));
-       assert.ok(formats.includes('Float16'));
-       assert.ok(!formats.includes('BFloat16'));
-       assert.ok(!formats.includes('FP8 E5M2'));
-       assert.ok(!formats.includes('FP8 E4M3'));
+       assert.ok(formats.includes('Float32'), 'Should include Float32');
+       assert.ok(formats.includes('TF32'), 'Should include TF32');
+       assert.ok(formats.includes('Float16'), 'Should include Float16');
+       assert.ok(!formats.includes('BFloat16'), 'Should NOT include BFloat16');
+       assert.ok(!formats.includes('FP8 E5M2'), 'Should NOT include FP8 E5M2');
+       assert.ok(!formats.includes('FP8 E4M3'), 'Should NOT include FP8 E4M3');
      });
 
   it('Large exponent (e.g., 100) excludes Float16 and FP8 formats', () => {
     const formats = getCompatibleFormats(1e30, 0, 100);
-    assert.ok(formats.includes('Float32'));
-    assert.ok(formats.includes('TF32'));
-    assert.ok(formats.includes('BFloat16'));
-    assert.ok(!formats.includes('Float16'));
-    assert.ok(!formats.includes('FP8 E5M2'));
-    assert.ok(!formats.includes('FP8 E4M3'));
+    assert.ok(formats.includes('Float32'), 'Should include Float32');
+    assert.ok(formats.includes('TF32'), 'Should include TF32');
+    assert.ok(formats.includes('BFloat16'), 'Should include BFloat16');
+    assert.ok(!formats.includes('Float16'), 'Should NOT include Float16');
+    assert.ok(!formats.includes('FP8 E5M2'), 'Should NOT include FP8 E5M2');
+    assert.ok(!formats.includes('FP8 E4M3'), 'Should NOT include FP8 E4M3');
   });
 
   it('Exponent 16 excludes Float16, FP8 E5M2, FP8 E4M3', () => {
     const formats = getCompatibleFormats(65536, 0, 16);
-    assert.ok(formats.includes('Float32'));
-    assert.ok(formats.includes('TF32'));
-    assert.ok(formats.includes('BFloat16'));
-    assert.ok(!formats.includes('Float16'));
-    assert.ok(!formats.includes('FP8 E5M2'));
-    assert.ok(!formats.includes('FP8 E4M3'));
+    assert.ok(formats.includes('Float32'), 'Should include Float32');
+    assert.ok(formats.includes('TF32'), 'Should include TF32');
+    assert.ok(formats.includes('BFloat16'), 'Should include BFloat16');
+    assert.ok(!formats.includes('Float16'), 'Should NOT include Float16');
+    assert.ok(!formats.includes('FP8 E5M2'), 'Should NOT include FP8 E5M2');
+    assert.ok(!formats.includes('FP8 E4M3'), 'Should NOT include FP8 E4M3');
   });
 
   it('Exponent 8 excludes FP8 E4M3 (max exp 7)', () => {
     const formats = getCompatibleFormats(256, 0, 8);
-    assert.ok(formats.includes('Float32'));
-    assert.ok(formats.includes('Float16'));
-    assert.ok(formats.includes('FP8 E5M2'));
-    assert.ok(!formats.includes('FP8 E4M3'));
+    assert.ok(formats.includes('Float32'), 'Should include Float32');
+    assert.ok(formats.includes('Float16'), 'Should include Float16');
+    assert.ok(formats.includes('FP8 E5M2'), 'Should include FP8 E5M2');
+    assert.ok(!formats.includes('FP8 E4M3'), 'Should NOT include FP8 E4M3');
   });
 
   it('Exponent -15 excludes Float16 and FP8 (need subnormal or out of range)',
      () => {
        const formats = getCompatibleFormats(Math.pow(2, -15), 0, -15);
-       assert.ok(formats.includes('Float32'));
-       assert.ok(formats.includes('TF32'));
-       assert.ok(formats.includes('BFloat16'));
+       assert.ok(formats.includes('Float32'), 'Should include Float32');
+       assert.ok(formats.includes('TF32'), 'Should include TF32');
+       assert.ok(formats.includes('BFloat16'), 'Should include BFloat16');
        // Float16 and FP8 E5M2 might represent as subnormal
      });
 
