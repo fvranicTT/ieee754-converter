@@ -803,7 +803,7 @@ function convertFloatToHex() {
   document.getElementById('float32-input').textContent = formatDecimal(input);
   document.getElementById('float32-stored').textContent =
       formatDecimal(float32Val);
-  document.getElementById('float32-error').parentElement.style.display = '';
+  document.getElementById('float32-error-row').style.display = '';
   document.getElementById('float32-error').textContent =
       calculateLoss(input, float32Val, 'float32');
   document.getElementById('float32-precision').innerHTML =
@@ -818,7 +818,7 @@ function convertFloatToHex() {
       '0x' + toHexString(tf32Bits, 19);
   document.getElementById('tf32-input').textContent = formatDecimal(input);
   document.getElementById('tf32-stored').textContent = formatDecimal(tf32Val);
-  document.getElementById('tf32-error').parentElement.style.display = '';
+  document.getElementById('tf32-error-row').style.display = '';
   document.getElementById('tf32-error').textContent =
       calculateLoss(input, tf32Val, 'tf32');
   document.getElementById('tf32-precision').innerHTML =
@@ -834,7 +834,7 @@ function convertFloatToHex() {
   document.getElementById('float16-input').textContent = formatDecimal(input);
   document.getElementById('float16-stored').textContent =
       formatDecimal(float16Val);
-  document.getElementById('float16-error').parentElement.style.display = '';
+  document.getElementById('float16-error-row').style.display = '';
   document.getElementById('float16-error').textContent =
       calculateLoss(input, float16Val, 'float16');
   document.getElementById('float16-precision').innerHTML =
@@ -850,7 +850,7 @@ function convertFloatToHex() {
   document.getElementById('bfloat16-input').textContent = formatDecimal(input);
   document.getElementById('bfloat16-stored').textContent =
       formatDecimal(bfloat16Val);
-  document.getElementById('bfloat16-error').parentElement.style.display = '';
+  document.getElementById('bfloat16-error-row').style.display = '';
   document.getElementById('bfloat16-error').textContent =
       calculateLoss(input, bfloat16Val, 'bfloat16');
   document.getElementById('bfloat16-precision').innerHTML =
@@ -866,7 +866,7 @@ function convertFloatToHex() {
   document.getElementById('fp8-e5m2-input').textContent = formatDecimal(input);
   document.getElementById('fp8-e5m2-stored').textContent =
       formatDecimal(fp8E5M2Val);
-  document.getElementById('fp8-e5m2-error').parentElement.style.display = '';
+  document.getElementById('fp8-e5m2-error-row').style.display = '';
   document.getElementById('fp8-e5m2-error').textContent =
       calculateLoss(input, fp8E5M2Val, 'fp8e5m2');
   document.getElementById('fp8-e5m2-precision').innerHTML =
@@ -882,7 +882,7 @@ function convertFloatToHex() {
   document.getElementById('fp8-e4m3-input').textContent = formatDecimal(input);
   document.getElementById('fp8-e4m3-stored').textContent =
       formatDecimal(fp8E4M3Val);
-  document.getElementById('fp8-e4m3-error').parentElement.style.display = '';
+  document.getElementById('fp8-e4m3-error-row').style.display = '';
   document.getElementById('fp8-e4m3-error').textContent =
       calculateLoss(input, fp8E4M3Val, 'fp8e4m3');
   document.getElementById('fp8-e4m3-precision').innerHTML =
@@ -1156,8 +1156,7 @@ function convertHexToFloat() {
         '0x' + hexInput.padStart(8, '0');
     document.getElementById('float32-input').textContent = '(from hex)';
     document.getElementById('float32-stored').textContent = float32Val;
-    document.getElementById('float32-error').parentElement.style.display =
-        'none';
+    document.getElementById('float32-error-row').style.display = 'none';
     document.getElementById('float32-precision').innerHTML = '';
   }
 
@@ -1169,8 +1168,7 @@ function convertHexToFloat() {
         '0x' + hexInput.padStart(4, '0');
     document.getElementById('float16-input').textContent = '(from hex)';
     document.getElementById('float16-stored').textContent = float16Val;
-    document.getElementById('float16-error').parentElement.style.display =
-        'none';
+    document.getElementById('float16-error-row').style.display = 'none';
     document.getElementById('float16-precision').innerHTML = '';
   }
 
@@ -1182,8 +1180,7 @@ function convertHexToFloat() {
         '0x' + hexInput.padStart(4, '0');
     document.getElementById('bfloat16-input').textContent = '(from hex)';
     document.getElementById('bfloat16-stored').textContent = bfloat16Val;
-    document.getElementById('bfloat16-error').parentElement.style.display =
-        'none';
+    document.getElementById('bfloat16-error-row').style.display = 'none';
     document.getElementById('bfloat16-precision').innerHTML = '';
   }
 
@@ -1195,7 +1192,7 @@ function convertHexToFloat() {
         '0x' + hexInput.padStart(5, '0');
     document.getElementById('tf32-input').textContent = '(from hex)';
     document.getElementById('tf32-stored').textContent = tf32Val;
-    document.getElementById('tf32-error').parentElement.style.display = 'none';
+    document.getElementById('tf32-error-row').style.display = 'none';
     document.getElementById('tf32-precision').innerHTML = '';
   }
 
@@ -1211,8 +1208,7 @@ function convertHexToFloat() {
         '0x' + hexInput.padStart(2, '0');
     document.getElementById('fp8-e5m2-input').textContent = '(from hex)';
     document.getElementById('fp8-e5m2-stored').textContent = fp8E5M2Val;
-    document.getElementById('fp8-e5m2-error').parentElement.style.display =
-        'none';
+    document.getElementById('fp8-e5m2-error-row').style.display = 'none';
     document.getElementById('fp8-e5m2-precision').innerHTML = '';
   }
 
@@ -1227,8 +1223,7 @@ function convertHexToFloat() {
         '0x' + hexInput.padStart(2, '0');
     document.getElementById('fp8-e4m3-input').textContent = '(from hex)';
     document.getElementById('fp8-e4m3-stored').textContent = fp8E4M3Val;
-    document.getElementById('fp8-e4m3-error').parentElement.style.display =
-        'none';
+    document.getElementById('fp8-e4m3-error-row').style.display = 'none';
     document.getElementById('fp8-e4m3-precision').innerHTML = '';
   }
 }
