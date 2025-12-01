@@ -1,103 +1,145 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    padding: 20px;
-    background-color: #f7f7f7;
+  font - family : Arial, sans - serif;
+margin:
+  20px;
+padding:
+  20px;
+  background - color : #f7f7f7;
 }
 
 h2 {
-    text-align: center;
-    color: #4a4a4a;
+  text - align : center;
+color:
+# 4a4a4a;
 }
 
 label, input, button, select {
-    display: block;
-    margin: 10px 0;
-    font-size: 16px;
+display:
+  block;
+margin:
+  10px 0;
+  font - size : 16px;
 }
 
 input, select {
-    padding: 8px;
-    width: 100%;
-    max-width: 300px;
+padding:
+  8px;
+width:
+  100 % ;
+  max - width : 300px;
 }
 
 button {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
+padding:
+  10px 20px;
+  background - color : #4CAF50;
+color:
+  white;
+border:
+  none;
+cursor:
+  pointer;
+  font - size : 16px;
 }
 
-button:hover {
-    background-color: #45a049;
+button : hover{background - color : #45a049;
 }
 
-.results, .calculation-results {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
+.results, .calculation - results {
+display:
+  grid;
+  grid - template - columns : 1fr 1fr;
+gap:
+  20px;
+  margin - top : 20px;
 }
 
-.int-results, .calculation-results {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
+.int - results, .calculation - results {
+display:
+  grid;
+  grid - template - columns : 1fr 1fr;
+gap:
+  20px;
+  margin - top : 20px;
 }
 
-.result-item, .calculation-result-item {
-    padding: 15px;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.result - item, .calculation - result - item {
+padding:
+  15px;
+  background - color : white;
+border:
+  1px solid #ddd;
+  border - radius : 8px;
+  box - shadow : 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.bit-container { 
-    display: flex; 
-    gap: 2px; 
-    margin-bottom: 10px;
+.bit - container {
+display:
+  flex;
+gap:
+  2px;
+  margin - bottom : 10px;
 }
 
-.bit-box { 
-    display: inline-block; 
-    width: 20px; 
-    height: 20px; 
-    text-align: center; 
-    border: 1px solid #ccc;
+.bit - box {
+display:
+  inline - block;
+width:
+  20px;
+height:
+  20px;
+  text - align : center;
+border:
+  1px solid #ccc;
 }
 
-.sign { background-color: #f44336; color: white; }
-.exponent { background-color: #2196F3; color: white; }
-.mantissa { background-color: #4CAF50; color: white; }
-.integer { background-color: #4CAF50; color: white; }
+.sign {
+  background - color : #f44336;
+color:
+  white;
+}
+.exponent {
+  background - color : #2196F3;
+color:
+  white;
+}
+.mantissa {
+  background - color : #4CAF50;
+color:
+  white;
+}
+.integer {
+  background - color : #4CAF50;
+color:
+  white;
+}
 
 .hex {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #333;
+  margin - top : 10px;
+  font - size : 14px;
+color:
+# 333;
 }
 
 .error {
-    color: red;
+color:
+  red;
 }
 
-.bit-info {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #555;
+.bit - info {
+  margin - top : 10px;
+  font - size : 14px;
+color:
+# 555;
 }
 
-.bit-info span {
-    margin-right: 10px;
+.bit - info span {
+  margin - right : 10px;
 }
 
-.binary, .hex-representation {
-    font-family: monospace;
-    color: #444;
-    margin-top: 10px;
+.binary, .hex - representation {
+  font - family : monospace;
+color:
+# 444;
+  margin - top : 10px;
 }
