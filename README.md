@@ -14,6 +14,7 @@ ieee754-converter
 │   └── styles.css    # CSS styles for the project
 │── scripts
 │   └── main.js       # JavaScript functionality for the converter
+│   └── tests.js      # JavaScript tests for functions from main.js
 └── README.md         # Project documentation
 ```
 
