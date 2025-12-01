@@ -42,7 +42,7 @@
         </div>
 
         <!-- Floating-Point Results -->
-        <div class="results">
+        <div class="results hidden-section">
             <!-- Float32 Template -->
             <div id="float32">
                 <div class="result-item">
@@ -207,7 +207,7 @@
         </div>
 
         <!-- Integer Results -->
-        <div class="int-results">
+        <div class="int-results hidden-section">
             <!-- Int32 Template -->
             <div id="int32">
                 <div class="result-item">
@@ -217,7 +217,12 @@
                     <div class="binary" id="int32-binary"></div>
                     <strong>Hex</strong>
                     <div class="hex-representation" id="int32-hex"></div>
-                    <strong>Integer Value:</strong> <span id="int32-value"></span>
+                    <table class="value-table">
+                        <tr>
+                            <td class="value-label">Stored Value</td>
+                            <td class="value-data"><span id="int32-value"></span></td>
+                        </tr>
+                    </table>
                     <div class="bit-info">
                         <span><strong>Type:</strong> 32-bit signed</span>
                     </div>
@@ -233,7 +238,12 @@
                     <div class="binary" id="uint32-binary"></div>
                     <strong>Hex</strong>
                     <div class="hex-representation" id="uint32-hex"></div>
-                    <strong>Integer Value:</strong> <span id="uint32-value"></span>
+                    <table class="value-table">
+                        <tr>
+                            <td class="value-label">Stored Value</td>
+                            <td class="value-data"><span id="uint32-value"></span></td>
+                        </tr>
+                    </table>
                     <div class="bit-info">
                         <span><strong>Type:</strong> 32-bit unsigned</span>
                     </div>
@@ -249,7 +259,12 @@
                     <div class="binary" id="int16-binary"></div>
                     <strong>Hex</strong>
                     <div class="hex-representation" id="int16-hex"></div>
-                    <strong>Integer Value:</strong> <span id="int16-value"></span>
+                    <table class="value-table">
+                        <tr>
+                            <td class="value-label">Stored Value</td>
+                            <td class="value-data"><span id="int16-value"></span></td>
+                        </tr>
+                    </table>
                     <div class="bit-info">
                         <span><strong>Type:</strong> 16-bit signed</span>
                     </div>
@@ -265,7 +280,12 @@
                     <div class="binary" id="uint16-binary"></div>
                     <strong>Hex</strong>
                     <div class="hex-representation" id="uint16-hex"></div>
-                    <strong>Integer Value:</strong> <span id="uint16-value"></span>
+                    <table class="value-table">
+                        <tr>
+                            <td class="value-label">Stored Value</td>
+                            <td class="value-data"><span id="uint16-value"></span></td>
+                        </tr>
+                    </table>
                     <div class="bit-info">
                         <span><strong>Type:</strong> 16-bit unsigned</span>
                     </div>
@@ -281,7 +301,12 @@
                     <div class="binary" id="int8-binary"></div>
                     <strong>Hex</strong>
                     <div class="hex-representation" id="int8-hex"></div>
-                    <strong>Integer Value:</strong> <span id="int8-value"></span>
+                    <table class="value-table">
+                        <tr>
+                            <td class="value-label">Stored Value</td>
+                            <td class="value-data"><span id="int8-value"></span></td>
+                        </tr>
+                    </table>
                     <div class="bit-info">
                         <span><strong>Type:</strong> 8-bit signed</span>
                     </div>
@@ -297,7 +322,12 @@
                     <div class="binary" id="uint8-binary"></div>
                     <strong>Hex</strong>
                     <div class="hex-representation" id="uint8-hex"></div>
-                    <strong>Integer Value:</strong> <span id="uint8-value"></span>
+                    <table class="value-table">
+                        <tr>
+                            <td class="value-label">Stored Value</td>
+                            <td class="value-data"><span id="uint8-value"></span></td>
+                        </tr>
+                    </table>
                     <div class="bit-info">
                         <span><strong>Type:</strong> 8-bit unsigned</span>
                     </div>

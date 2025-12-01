@@ -225,6 +225,13 @@ button:active {
   position: relative;
 }
 
+/* Hidden state - no border, no padding, no header */
+.results.hidden-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
 .results::before {
   content: 'Floating-Point Representations';
   position: absolute;
@@ -240,12 +247,23 @@ button:active {
   letter-spacing: 0.2em;
 }
 
+.results.hidden-section::before {
+  display: none;
+}
+
 /* Section divider for int-results */
 .int-results {
   margin-top: 64px;
   padding-top: 48px;
   border-top: 1px solid var(--border-color);
   position: relative;
+}
+
+/* Hidden state - no border, no padding, no header */
+.int-results.hidden-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 .int-results::before {
@@ -261,6 +279,10 @@ button:active {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.2em;
+}
+
+.int-results.hidden-section::before {
+  display: none;
 }
 
 /* ============================================
