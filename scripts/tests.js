@@ -17,7 +17,8 @@ const {
   floatToFP8E4M3,
   fp8E4M3ToFloat,
   analyzePrecision,
-  getCompatibleFormats
+  getCompatibleFormats,
+  formatDecimal
 } = require('./main.js');
 
 // ============================================================================
@@ -987,5 +988,116 @@ describe('Precision Step (ULP) Calculation', () => {
   it('ULP for BFloat16 at exponent 0 is 2^-7', () => {
     const analysis = analyzePrecision(1.0, 'bfloat16');
     assertClose(analysis.minRepresentable, Math.pow(2, -7), 1e-5);
+  });
+});
+
+// ============================================================================
+// formatDecimal Tests
+// ============================================================================
+
+describe('formatDecimal - Precision Display', () => {
+  it('Displays zero as "0"', () => {
+    assert.strictEqual(formatDecimal(0), '0');
+  });
+
+  it('Displays negative zero as "0"', () => {
+    assert.strictEqual(formatDecimal(-0), '0');
+  });
+
+  it('Displays Infinity correctly', () => {
+    assert.strictEqual(formatDecimal(Infinity), 'Infinity');
+  });
+
+  it('Displays -Infinity correctly', () => {
+    assert.strictEqual(formatDecimal(-Infinity), '-Infinity');
+  });
+
+  it('Displays NaN correctly', () => {
+    assert.strictEqual(formatDecimal(NaN), 'NaN');
+  });
+
+  it('Displays 1.0 without unnecessary trailing zeros', () => {
+    const result = formatDecimal(1.0);
+    assert.ok(
+        !result.endsWith('0000'), `Expected no trailing zeros, got: ${result}`);
+  });
+
+  it('Displays 0.5 without unnecessary trailing zeros', () => {
+    const result = formatDecimal(0.5);
+    assert.ok(
+        !result.endsWith('0000'), `Expected no trailing zeros, got: ${result}`);
+  });
+
+  it('Displays pi with high precision', () => {
+    const result = formatDecimal(Math.PI);
+    // Should have more than 10 significant digits
+    assert.ok(result.length > 12, `Expected high precision, got: ${result}`);
+  });
+
+  it('Displays 1/6 (Float32) with full precision', () => {
+    // This is the exact Float32 representation of 1/6
+    const float32View = new Float32Array([1 / 6]);
+    const result = formatDecimal(float32View[0]);
+    // Should have many significant digits
+    assert.ok(
+        result.length > 10, `Expected high precision for 1/6, got: ${result}`);
+  });
+
+  it('Displays very small numbers in scientific notation', () => {
+    const result = formatDecimal(1e-10);
+    assert.ok(
+        result.includes('e'),
+        `Expected scientific notation for 1e-10, got: ${result}`);
+  });
+
+  it('Displays very large numbers in scientific notation', () => {
+    const result = formatDecimal(1e10);
+    assert.ok(
+        result.includes('e'),
+        `Expected scientific notation for 1e10, got: ${result}`);
+  });
+
+  it('Preserves precision for exact Float32 values', () => {
+    // 0.1 in Float32 is not exactly 0.1
+    const float32View = new Float32Array([0.1]);
+    const result = formatDecimal(float32View[0]);
+    // Should show the actual Float32 value, not just 0.1
+    assert.ok(
+        result.startsWith('0.10000000'),
+        `Expected precise Float32 value, got: ${result}`);
+  });
+
+  it('Handles negative numbers correctly', () => {
+    const result = formatDecimal(-3.14159);
+    assert.ok(
+        result.startsWith('-3.14'),
+        `Expected negative number starting with -3.14, got: ${result}`);
+    assert.ok(
+        result.length > 5,
+        `Expected high precision for negative number, got: ${result}`);
+  });
+
+  it('Very small numbers use scientific notation', () => {
+    // Numbers smaller than 1e-7 should use scientific notation
+    const result = formatDecimal(1e-10);
+    assert.ok(
+        result.includes('e'),
+        `Expected scientific notation for 1e-10, got: ${result}`);
+  });
+
+  it('Very large numbers use scientific notation', () => {
+    // Numbers >= 1e7 should use scientific notation
+    const result = formatDecimal(1e8);
+    assert.ok(
+        result.includes('e'),
+        `Expected scientific notation for 1e8, got: ${result}`);
+  });
+
+  it('Normal range numbers have high precision', () => {
+    // 0.1 cannot be exactly represented in binary floating point
+    const result = formatDecimal(0.1);
+    // Should show many digits to reveal the inexact representation
+    assert.ok(
+        result.length >= 10, `Expected high precision for 0.1, got: ${result}`);
   });
 });

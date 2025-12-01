@@ -685,6 +685,7 @@ function calculateLoss(original, converted, format = 'float32') {
 }
 
 // Format number to handle very small and very large numbers appropriately
+// Float32 requires up to 17 decimal digits for exact representation
 function formatDecimal(num) {
   if (!isFinite(num)) {
     return String(num);
@@ -694,21 +695,23 @@ function formatDecimal(num) {
 
   // For very small numbers (smaller than 1e-7), use scientific notation
   if (absNum > 0 && absNum < 1e-7) {
-    return num.toExponential(10);
+    return num.toExponential(17);
   }
 
   // For very large numbers (larger than 1e7), use scientific notation
   if (absNum >= 1e7) {
-    return num.toExponential(10);
+    return num.toExponential(17);
   }
 
   // For numbers close to zero
   if (absNum === 0 || absNum < Number.EPSILON) {
-    return '0.0000000000';
+    return '0';
   }
 
-  // For normal range numbers, use fixed notation
-  return num.toFixed(10);
+  // For normal range numbers, use toPrecision for exact representation
+  // Float32 requires up to 9 significant digits, Float64 up to 17
+  // Using 17 ensures exact representation of any Float32 value
+  return num.toPrecision(17).replace(/\.?0+$/, '');
 }
 
 function hideElements(ids) {
