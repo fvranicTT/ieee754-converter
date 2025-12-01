@@ -10,33 +10,52 @@
     </head>
     <body>
         <h2>IEEE 754 Floating Point Converter</h2>
+
+        <!-- Color Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color sign"></div>
+                <span>Sign</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color exponent"></div>
+                <span>Exponent</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color mantissa"></div>
+                <span>Mantissa</span>
+            </div>
+        </div>
+
         <!-- Decimal to Hex Conversion -->
-        <div>
-            <label for="input">Enter a floating-point number:</label>
-            <input type="text" id="input">
+        <div class="input-section">
+            <label for="input">Enter a floating-point number</label>
+            <input type="text" id="input" placeholder="e.g., 3.14159, -0.5, 1e-10">
             <button onclick="convertFloatToHex()">Convert to Hex</button>
         </div>
+
         <!-- Hex to Float/Int Conversion -->
-        <div>
-            <label for="hexInput">Enter a hexadecimal number:</label>
-            <input type="text" id="hexInput">
+        <div class="input-section">
+            <label for="hexInput">Enter a hexadecimal number</label>
+            <input type="text" id="hexInput" placeholder="e.g., 40490FDB, 3C00, 7C">
             <button onclick="convertHexToFloat()">Convert from Hex</button>
         </div>
+
         <!-- Floating-Point Results -->
         <div class="results">
             <!-- Float32 Template -->
             <div id="float32">
                 <div class="result-item">
-                    <strong>Float32 (32 bits):</strong><br><br>
+                    <strong>Float32 (32 bits)</strong><br><br>
                     <div id="float32-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="float32-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="float32-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="float32-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="float32-hex"></div>
                     <strong>Decimal Representation:</strong> <span id="float32-input"></span><br>
-                    <strong>Value Stored:</strong> <span id="float32-stored"></span><br>
-                    <div class="error-info" title="The actual difference between stored and input value, calculated at maximum precision. A + sign means we rounded up, - means we rounded down. This error will always be smaller than half the precision step.">
-                        <strong>Error:</strong> <span id="float32-error"></span>
+                    <strong>Value Stored:</strong> <span id="float32-stored"></span>
+                    <div title="The difference between stored and input value. A + sign means we rounded up, - means we rounded down. This will always be smaller than half the precision step.">
+                        <strong>Rounding Error:</strong> <span id="float32-error"></span>
                     </div>
                     <div id="float32-precision"></div>
                 </div>
@@ -45,16 +64,16 @@
             <!-- TF32 Template -->
             <div id="tf32">
                 <div class="result-item">
-                    <strong>TF32 (19 bits):</strong><br><br>
+                    <strong>TF32 (19 bits)</strong><br><br>
                     <div id="tf32-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="tf32-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="tf32-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="tf32-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="tf32-hex"></div>
                     <strong>Decimal Representation:</strong> <span id="tf32-input"></span><br>
-                    <strong>Value Stored:</strong> <span id="tf32-stored"></span><br>
-                    <div class="error-info" title="The actual difference between stored and input value, calculated at maximum precision. A + sign means we rounded up, - means we rounded down. This error will always be smaller than half the precision step.">
-                        <strong>Error:</strong> <span id="tf32-error"></span>
+                    <strong>Value Stored:</strong> <span id="tf32-stored"></span>
+                    <div title="The difference between stored and input value. A + sign means we rounded up, - means we rounded down. This will always be smaller than half the precision step.">
+                        <strong>Rounding Error:</strong> <span id="tf32-error"></span>
                     </div>
                     <div id="tf32-precision"></div>
                 </div>
@@ -63,16 +82,16 @@
             <!-- Float16 Template -->
             <div id="float16">
                 <div class="result-item">
-                    <strong>Float16 (16 bits):</strong><br><br>
+                    <strong>Float16 (16 bits)</strong><br><br>
                     <div id="float16-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="float16-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="float16-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="float16-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="float16-hex"></div>
                     <strong>Decimal Representation:</strong> <span id="float16-input"></span><br>
-                    <strong>Value Stored:</strong> <span id="float16-stored"></span><br>
-                    <div class="error-info" title="The actual difference between stored and input value, calculated at maximum precision. A + sign means we rounded up, - means we rounded down. This error will always be smaller than half the precision step.">
-                        <strong>Error:</strong> <span id="float16-error"></span>
+                    <strong>Value Stored:</strong> <span id="float16-stored"></span>
+                    <div title="The difference between stored and input value. A + sign means we rounded up, - means we rounded down. This will always be smaller than half the precision step.">
+                        <strong>Rounding Error:</strong> <span id="float16-error"></span>
                     </div>
                     <div id="float16-precision"></div>
                 </div>
@@ -81,16 +100,16 @@
             <!-- BFloat16 Template -->
             <div id="bfloat16">
                 <div class="result-item">
-                    <strong>BFloat16 (16 bits):</strong><br><br>
+                    <strong>BFloat16 (16 bits)</strong><br><br>
                     <div id="bfloat16-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="bfloat16-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="bfloat16-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="bfloat16-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="bfloat16-hex"></div>
                     <strong>Decimal Representation:</strong> <span id="bfloat16-input"></span><br>
-                    <strong>Value Stored:</strong> <span id="bfloat16-stored"></span><br>
-                    <div class="error-info" title="The actual difference between stored and input value, calculated at maximum precision. A + sign means we rounded up, - means we rounded down. This error will always be smaller than half the precision step.">
-                        <strong>Error:</strong> <span id="bfloat16-error"></span>
+                    <strong>Value Stored:</strong> <span id="bfloat16-stored"></span>
+                    <div title="The difference between stored and input value. A + sign means we rounded up, - means we rounded down. This will always be smaller than half the precision step.">
+                        <strong>Rounding Error:</strong> <span id="bfloat16-error"></span>
                     </div>
                     <div id="bfloat16-precision"></div>
                 </div>
@@ -99,16 +118,16 @@
             <!-- FP8 E5M2 Template -->
             <div id="fp8-e5m2">
                 <div class="result-item">
-                    <strong>FP8 E5M2 (8 bits):</strong><br><br>
+                    <strong>FP8 E5M2 (8 bits)</strong><br><br>
                     <div id="fp8-e5m2-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="fp8-e5m2-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="fp8-e5m2-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="fp8-e5m2-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="fp8-e5m2-hex"></div>
                     <strong>Decimal Representation:</strong> <span id="fp8-e5m2-input"></span><br>
-                    <strong>Value Stored:</strong> <span id="fp8-e5m2-stored"></span><br>
-                    <div class="error-info" title="The actual difference between stored and input value, calculated at maximum precision. A + sign means we rounded up, - means we rounded down. This error will always be smaller than half the precision step.">
-                        <strong>Error:</strong> <span id="fp8-e5m2-error"></span>
+                    <strong>Value Stored:</strong> <span id="fp8-e5m2-stored"></span>
+                    <div title="The difference between stored and input value. A + sign means we rounded up, - means we rounded down. This will always be smaller than half the precision step.">
+                        <strong>Rounding Error:</strong> <span id="fp8-e5m2-error"></span>
                     </div>
                     <div id="fp8-e5m2-precision"></div>
                 </div>
@@ -117,16 +136,16 @@
             <!-- FP8 E4M3 Template -->
             <div id="fp8-e4m3">
                 <div class="result-item">
-                    <strong>FP8 E4M3 (8 bits):</strong><br><br>
+                    <strong>FP8 E4M3 (8 bits)</strong><br><br>
                     <div id="fp8-e4m3-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="fp8-e4m3-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="fp8-e4m3-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="fp8-e4m3-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="fp8-e4m3-hex"></div>
                     <strong>Decimal Representation:</strong> <span id="fp8-e4m3-input"></span><br>
-                    <strong>Value Stored:</strong> <span id="fp8-e4m3-stored"></span><br>
-                    <div class="error-info" title="The actual difference between stored and input value, calculated at maximum precision. A + sign means we rounded up, - means we rounded down. This error will always be smaller than half the precision step.">
-                        <strong>Error:</strong> <span id="fp8-e4m3-error"></span>
+                    <strong>Value Stored:</strong> <span id="fp8-e4m3-stored"></span>
+                    <div title="The difference between stored and input value. A + sign means we rounded up, - means we rounded down. This will always be smaller than half the precision step.">
+                        <strong>Rounding Error:</strong> <span id="fp8-e4m3-error"></span>
                     </div>
                     <div id="fp8-e4m3-precision"></div>
                 </div>
@@ -138,15 +157,15 @@
             <!-- Int8 Template -->
             <div id="int8">
                 <div class="result-item">
-                    <strong>Int8 (8 bits):</strong><br><br>
+                    <strong>Int8 (8 bits)</strong><br><br>
                     <div id="int8-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="int8-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="int8-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="int8-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="int8-hex"></div>
                     <strong>Integer Value:</strong> <span id="int8-value"></span>
                     <div class="bit-info">
-                        <span><strong>Bits:</strong> 8 bits (signed)</span>
+                        <span><strong>Type:</strong> 8-bit signed</span>
                     </div>
                 </div>
             </div>
@@ -154,15 +173,15 @@
             <!-- Uint8 Template -->
             <div id="uint8">
                 <div class="result-item">
-                    <strong>Uint8 (8 bits):</strong><br><br>
+                    <strong>Uint8 (8 bits)</strong><br><br>
                     <div id="uint8-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="uint8-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="uint8-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="uint8-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="uint8-hex"></div>
                     <strong>Integer Value:</strong> <span id="uint8-value"></span>
                     <div class="bit-info">
-                        <span><strong>Bits:</strong> 8 bits (unsigned)</span>
+                        <span><strong>Type:</strong> 8-bit unsigned</span>
                     </div>
                 </div>
             </div>
@@ -170,15 +189,15 @@
             <!-- Int16 Template -->
             <div id="int16">
                 <div class="result-item">
-                    <strong>Int16 (16 bits):</strong><br><br>
+                    <strong>Int16 (16 bits)</strong><br><br>
                     <div id="int16-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="int16-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="int16-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="int16-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="int16-hex"></div>
                     <strong>Integer Value:</strong> <span id="int16-value"></span>
                     <div class="bit-info">
-                        <span><strong>Bits:</strong> 16 bits (signed)</span>
+                        <span><strong>Type:</strong> 16-bit signed</span>
                     </div>
                 </div>
             </div>
@@ -186,15 +205,15 @@
             <!-- Uint16 Template -->
             <div id="uint16">
                 <div class="result-item">
-                    <strong>Uint16 (16 bits):</strong><br><br>
+                    <strong>Uint16 (16 bits)</strong><br><br>
                     <div id="uint16-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="uint16-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="uint16-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="uint16-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="uint16-hex"></div>
                     <strong>Integer Value:</strong> <span id="uint16-value"></span>
                     <div class="bit-info">
-                        <span><strong>Bits:</strong> 16 bits (unsigned)</span>
+                        <span><strong>Type:</strong> 16-bit unsigned</span>
                     </div>
                 </div>
             </div>
@@ -202,15 +221,15 @@
             <!-- Int32 Template -->
             <div id="int32">
                 <div class="result-item">
-                    <strong>Int32 (32 bits):</strong><br><br>
+                    <strong>Int32 (32 bits)</strong><br><br>
                     <div id="int32-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="int32-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="int32-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="int32-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="int32-hex"></div>
                     <strong>Integer Value:</strong> <span id="int32-value"></span>
                     <div class="bit-info">
-                        <span><strong>Bits:</strong> 32 bits (signed)</span>
+                        <span><strong>Type:</strong> 32-bit signed</span>
                     </div>
                 </div>
             </div>
@@ -218,15 +237,15 @@
             <!-- Uint32 Template -->
             <div id="uint32">
                 <div class="result-item">
-                    <strong>Uint32 (32 bits):</strong><br><br>
+                    <strong>Uint32 (32 bits)</strong><br><br>
                     <div id="uint32-colored-bits"></div>
-                    <strong>Binary:</strong><br>
-                    <div class="binary" id="uint32-binary"></div><br>
-                    <strong>Hex:</strong><br>
-                    <div class="hex-representation" id="uint32-hex"></div><br>
+                    <strong>Binary</strong>
+                    <div class="binary" id="uint32-binary"></div>
+                    <strong>Hex</strong>
+                    <div class="hex-representation" id="uint32-hex"></div>
                     <strong>Integer Value:</strong> <span id="uint32-value"></span>
                     <div class="bit-info">
-                        <span><strong>Bits:</strong> 32 bits (unsigned)</span>
+                        <span><strong>Type:</strong> 32-bit unsigned</span>
                     </div>
                 </div>
             </div>
