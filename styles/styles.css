@@ -546,6 +546,26 @@ button:active {
   margin: 0;
 }
 
+/* Precision item tooltips - only show help cursor on elements with title attribute */
+.precision-item[title],
+.precision-title[title],
+.bit-info[title] {
+  cursor: help;
+}
+
+.precision-item[title]:hover,
+.precision-title[title]:hover,
+.bit-info[title]:hover {
+  background: rgba(122, 158, 184, 0.1);
+  border-radius: 4px;
+}
+
+.precision-item {
+  padding: 4px 8px;
+  margin: 2px -8px;
+  transition: background 0.2s ease;
+}
+
 /* ============================================
    Animations
    ============================================ */
