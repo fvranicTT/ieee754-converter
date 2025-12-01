@@ -732,13 +732,21 @@ function showElements(ids) {
   });
 }
 
-// Hide all format cards
+// Hide all format cards and section headers
 function hideAllFormatCards() {
   const formats = [
     'float32', 'tf32', 'bfloat16', 'float16', 'fp8-e5m2', 'fp8-e4m3', 'int8',
     'uint8', 'int16', 'uint16', 'int32', 'uint32'
   ];
   hideElements(formats);
+
+  // Hide section headers
+  const results = document.querySelector('.results');
+  const intResults = document.querySelector('.int-results');
+  if (results)
+    results.classList.add('hidden-section');
+  if (intResults)
+    intResults.classList.add('hidden-section');
 }
 
 // Show floating point format cards
@@ -771,6 +779,9 @@ function convertFloatToHex() {
   // Hide integer elements and show float elements
   hideElements(['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32']);
   showFloatFormatCards();
+
+  // Show section headers
+  document.querySelector('.results').classList.remove('hidden-section');
 
   // Float32: Ensure the actual Float32 representation is used
   let float32Val = new Float32Array([input])[0];
@@ -986,6 +997,24 @@ function convertHexToFloat() {
     showElements(['uint32']);
   else
     hideElements(['uint32']);
+
+  // Show section headers if any cards are visible
+  const hasFloatCards = isValidFloat32 || isValidFloat16 || isValidBfloat16 ||
+      isValidTF32 || isValidFp8E5M2 || isValidFp8E4M3;
+  const hasIntCards = isValidInt8 || isValidUint8 || isValidInt16 ||
+      isValidUint16 || isValidInt32 || isValidUint32;
+
+  if (hasFloatCards) {
+    document.querySelector('.results').classList.remove('hidden-section');
+  } else {
+    document.querySelector('.results').classList.add('hidden-section');
+  }
+
+  if (hasIntCards) {
+    document.querySelector('.int-results').classList.remove('hidden-section');
+  } else {
+    document.querySelector('.int-results').classList.add('hidden-section');
+  }
 
   // Float32 (32 bits, 8 hex digits)
   let float32Val = 'Invalid';
