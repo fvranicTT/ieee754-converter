@@ -1569,6 +1569,70 @@ describe('Bit Editor - Signed vs Unsigned Comparison', () => {
   });
 });
 
+describe('Bit Editor - Binary String Output', () => {
+  it('Float32: 0x3F800000 (1.0) produces correct 32-bit binary', () => {
+    const bits = 0x3F800000;
+    const binary = (bits >>> 0).toString(2).padStart(32, '0');
+    assert.strictEqual(binary, '00111111100000000000000000000000');
+    assert.strictEqual(binary.length, 32);
+  });
+
+  it('Float16: 0x3C00 (1.0) produces correct 16-bit binary', () => {
+    const bits = 0x3C00;
+    const binary = (bits >>> 0).toString(2).padStart(16, '0');
+    assert.strictEqual(binary, '0011110000000000');
+    assert.strictEqual(binary.length, 16);
+  });
+
+  it('FP8 E4M3: 0x38 (1.0) produces correct 8-bit binary', () => {
+    const bits = 0x38;
+    const binary = (bits >>> 0).toString(2).padStart(8, '0');
+    assert.strictEqual(binary, '00111000');
+    assert.strictEqual(binary.length, 8);
+  });
+
+  it('FP8 E4M3: 0x77 (240 max) produces correct 8-bit binary', () => {
+    const bits = 0x77;
+    const binary = (bits >>> 0).toString(2).padStart(8, '0');
+    assert.strictEqual(binary, '01110111');
+  });
+
+  it('FP8 E4M3: 0x78 (Infinity) produces correct 8-bit binary', () => {
+    const bits = 0x78;
+    const binary = (bits >>> 0).toString(2).padStart(8, '0');
+    assert.strictEqual(binary, '01111000');
+  });
+
+  it('Int8: 0xFF (-1 signed, 255 unsigned) produces correct binary', () => {
+    const bits = 0xFF;
+    const binary = (bits >>> 0).toString(2).padStart(8, '0');
+    assert.strictEqual(binary, '11111111');
+  });
+
+  it('Int32: 0x80000000 (-2147483648) produces correct binary', () => {
+    const bits = 0x80000000;
+    const binary = (bits >>> 0).toString(2).padStart(32, '0');
+    assert.strictEqual(binary, '10000000000000000000000000000000');
+    assert.strictEqual(binary.length, 32);
+  });
+
+  it('Zero produces all zeros for any bit width', () => {
+    assert.strictEqual((0).toString(2).padStart(8, '0'), '00000000');
+    assert.strictEqual((0).toString(2).padStart(16, '0'), '0000000000000000');
+    assert.strictEqual(
+        (0).toString(2).padStart(32, '0'), '00000000000000000000000000000000');
+  });
+
+  it('All ones produces correct binary for each width', () => {
+    assert.strictEqual((0xFF >>> 0).toString(2).padStart(8, '0'), '11111111');
+    assert.strictEqual(
+        (0xFFFF >>> 0).toString(2).padStart(16, '0'), '1111111111111111');
+    assert.strictEqual(
+        (0xFFFFFFFF >>> 0).toString(2).padStart(32, '0'),
+        '11111111111111111111111111111111');
+  });
+});
+
 describe('Bit Editor - Float32 Special Values from Bit Patterns', () => {
   it('0x7F800000 = +Infinity (all exp bits set, mant=0)', () => {
     const bits = 0x7F800000;

@@ -894,19 +894,32 @@ button:active {
 
 .bit-editor-info {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 24px;
+  gap: 12px;
   margin-bottom: 16px;
   font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 
 .bit-editor-info span {
-  padding: 8px 16px;
+  padding: 8px 12px;
   background: var(--bg-secondary);
   border-radius: 6px;
   border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: all;
+}
+
+.bit-editor-info span:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-primary);
+}
+
+.bit-editor-info span:active {
+  transform: scale(0.98);
 }
 
 /* Bit position labels */
