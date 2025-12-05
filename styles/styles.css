@@ -701,3 +701,227 @@ button:active {
   background: rgba(0, 212, 255, 0.3);
   color: var(--text-primary);
 }
+
+/* ============================================
+   Bit Editor
+   ============================================ */
+
+.bit-editor-section {
+  max-width: 1200px;
+  width: 100%;
+}
+
+.bit-editor-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bit-editor-controls select {
+  padding: 8px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.bit-editor-controls select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.bit-editor-controls button {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.bit-editor-controls button:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.bit-editor-container {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  padding: 16px 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 12px;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.bit-editor-row {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.bit-editor-row::after {
+  content: '';
+  width: 8px;
+}
+
+.bit-editor-group {
+  display: flex;
+  gap: 2px;
+}
+
+.bit-editor-separator {
+  width: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.editable-bit {
+  width: 26px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  border: 1px solid transparent;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.editable-bit:hover {
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+.editable-bit:active {
+  transform: scale(0.95);
+}
+
+/* Bit colors by type */
+.editable-bit.sign {
+  background: var(--sign-glow);
+  color: var(--sign-color);
+  border-color: rgba(193, 120, 120, 0.3);
+}
+
+.editable-bit.sign:hover {
+  background: rgba(193, 120, 120, 0.3);
+  box-shadow: 0 0 12px var(--sign-glow);
+}
+
+.editable-bit.sign.active {
+  background: var(--sign-color);
+  color: var(--bg-primary);
+}
+
+.editable-bit.exponent {
+  background: var(--exponent-glow);
+  color: var(--exponent-color);
+  border-color: rgba(122, 158, 184, 0.3);
+}
+
+.editable-bit.exponent:hover {
+  background: rgba(122, 158, 184, 0.3);
+  box-shadow: 0 0 12px var(--exponent-glow);
+}
+
+.editable-bit.exponent.active {
+  background: var(--exponent-color);
+  color: var(--bg-primary);
+}
+
+.editable-bit.mantissa {
+  background: var(--mantissa-glow);
+  color: var(--mantissa-color);
+  border-color: rgba(122, 184, 138, 0.3);
+}
+
+.editable-bit.mantissa:hover {
+  background: rgba(122, 184, 138, 0.3);
+  box-shadow: 0 0 12px var(--mantissa-glow);
+}
+
+.editable-bit.mantissa.active {
+  background: var(--mantissa-color);
+  color: var(--bg-primary);
+}
+
+.editable-bit.integer {
+  background: var(--integer-glow);
+  color: var(--integer-color);
+  border-color: rgba(138, 158, 176, 0.3);
+}
+
+.editable-bit.integer:hover {
+  background: rgba(138, 158, 176, 0.3);
+  box-shadow: 0 0 12px var(--integer-glow);
+}
+
+.editable-bit.integer.active {
+  background: var(--integer-color);
+  color: var(--bg-primary);
+}
+
+.editable-bit.hidden-bit {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.bit-index {
+  position: absolute;
+  bottom: -14px;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.bit-editor-info {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 16px;
+  font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.bit-editor-info span {
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+/* Bit position labels */
+.bit-position-labels {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 4px;
+  padding: 0 16px;
+}
+
+.bit-position-label {
+  width: 28px;
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+}

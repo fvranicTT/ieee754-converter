@@ -1612,9 +1612,252 @@ function formatPrecisionDetails(value, format = 'float32') {
     `;
 }
 
+// ============================================
+// Bit Editor
+// ============================================
+
+// Bit editor state - 32 bits
+let bitEditorBits = new Array(32).fill(0);
+
+// Format configurations for bit editor
+const bitEditorFormats = {
+  'float32':
+      {totalBits: 32, signBits: 1, expBits: 8, mantBits: 23, isFloat: true},
+  'bfloat16':
+      {totalBits: 16, signBits: 1, expBits: 8, mantBits: 7, isFloat: true},
+  'float16':
+      {totalBits: 16, signBits: 1, expBits: 5, mantBits: 10, isFloat: true},
+  'fp8e5m2':
+      {totalBits: 8, signBits: 1, expBits: 5, mantBits: 2, isFloat: true},
+  'fp8e4m3':
+      {totalBits: 8, signBits: 1, expBits: 4, mantBits: 3, isFloat: true},
+  'int32': {totalBits: 32, isFloat: false, signed: true},
+  'uint32': {totalBits: 32, isFloat: false, signed: false},
+  'int16': {totalBits: 16, isFloat: false, signed: true},
+  'uint16': {totalBits: 16, isFloat: false, signed: false},
+  'int8': {totalBits: 8, isFloat: false, signed: true},
+  'uint8': {totalBits: 8, isFloat: false, signed: false}
+};
+
+// Initialize bit editor on page load
+function initBitEditor() {
+  updateBitEditorDisplay();
+}
+
+// Generate the bit editor display based on selected format
+function updateBitEditorDisplay() {
+  const container = document.getElementById('bitEditorContainer');
+  const formatSelect = document.getElementById('bitEditorFormat');
+  const format = bitEditorFormats[formatSelect.value];
+
+  if (!container || !format)
+    return;
+
+  container.innerHTML = '';
+
+  const totalBits = format.totalBits;
+
+  // Create bit elements
+  for (let i = 0; i < 32; i++) {
+    const bitIndex = 31 - i;  // MSB first
+    const isHidden = bitIndex >= totalBits;
+
+    // Determine bit type (sign, exponent, mantissa, or integer)
+    let bitType = 'integer';
+    if (format.isFloat && !isHidden) {
+      const posInFormat = totalBits - 1 - bitIndex;
+      if (posInFormat === 0) {
+        bitType = 'sign';
+      } else if (posInFormat < 1 + format.expBits) {
+        bitType = 'exponent';
+      } else {
+        bitType = 'mantissa';
+      }
+    }
+
+    const bit = document.createElement('div');
+    bit.className =
+        `editable-bit ${bitType}${bitEditorBits[bitIndex] ? ' active' : ''}${
+            isHidden ? ' hidden-bit' : ''}`;
+    bit.textContent = bitEditorBits[bitIndex];
+    bit.dataset.index = bitIndex;
+
+    if (!isHidden) {
+      bit.onclick = () => toggleBit(bitIndex);
+    }
+
+    // Add bit index label for key positions (MSB, LSB, byte boundaries, and
+    // format boundaries)
+    const isFormatBoundary =
+        format.isFloat &&
+        (
+            bitIndex === totalBits - 1 ||                   // Sign bit
+            bitIndex === totalBits - 1 - format.expBits ||  // Last exponent bit
+            bitIndex === 0                                  // LSB
+        );
+    if (!isHidden && (isFormatBoundary || bitIndex % 8 === 0)) {
+      const label = document.createElement('span');
+      label.className = 'bit-index';
+      label.textContent = bitIndex;
+      bit.appendChild(label);
+    }
+
+    container.appendChild(bit);
+
+    // Add separator every 8 bits (but not at the end)
+    if (i < 31 && (i + 1) % 8 === 0) {
+      const sep = document.createElement('div');
+      sep.className = 'bit-editor-separator';
+      sep.textContent = '│';
+      container.appendChild(sep);
+    }
+  }
+
+  updateBitEditorInfo();
+}
+
+// Toggle a single bit
+function toggleBit(index) {
+  bitEditorBits[index] = bitEditorBits[index] ? 0 : 1;
+
+  // Update the visual display
+  const container = document.getElementById('bitEditorContainer');
+  const bits = container.querySelectorAll('.editable-bit');
+
+  bits.forEach(bit => {
+    const bitIndex = parseInt(bit.dataset.index);
+    if (bitIndex === index) {
+      bit.classList.toggle('active', bitEditorBits[index]);
+      bit.childNodes[0].textContent = bitEditorBits[index];
+    }
+  });
+
+  updateBitEditorInfo();
+}
+
+// Clear all bits
+function clearBitEditor() {
+  bitEditorBits.fill(0);
+  updateBitEditorDisplay();
+}
+
+// Set all bits
+function setAllBits() {
+  const formatSelect = document.getElementById('bitEditorFormat');
+  const format = bitEditorFormats[formatSelect.value];
+
+  for (let i = 0; i < 32; i++) {
+    bitEditorBits[i] = i < format.totalBits ? 1 : 0;
+  }
+  updateBitEditorDisplay();
+}
+
+// Update hex and decimal display
+function updateBitEditorInfo() {
+  const formatSelect = document.getElementById('bitEditorFormat');
+  const format = bitEditorFormats[formatSelect.value];
+  const totalBits = format.totalBits;
+
+  // Calculate value from bits
+  let value = 0;
+  for (let i = 0; i < totalBits; i++) {
+    if (bitEditorBits[i]) {
+      value |= (1 << i);
+    }
+  }
+
+  // Convert to unsigned for hex display
+  const unsignedValue = value >>> 0;
+  const hexDigits = Math.ceil(totalBits / 4);
+  const hexStr =
+      unsignedValue.toString(16).toUpperCase().padStart(hexDigits, '0');
+
+  document.getElementById('bitEditorHex').textContent = `Hex: 0x${hexStr}`;
+
+  // Calculate decimal value based on format
+  let decimalStr = '';
+  if (format.isFloat) {
+    let floatVal;
+    switch (formatSelect.value) {
+      case 'float32':
+        floatVal = new Float32Array(new Uint32Array([value]).buffer)[0];
+        break;
+      case 'bfloat16':
+        floatVal = bfloat16ToFloat32(value & 0xFFFF);
+        break;
+      case 'float16':
+        floatVal = float16ToFloat32(value & 0xFFFF);
+        break;
+      case 'fp8e5m2':
+        floatVal = fp8E5M2ToFloat(value & 0xFF);
+        break;
+      case 'fp8e4m3':
+        floatVal = fp8E4M3ToFloat(value & 0xFF);
+        break;
+      default:
+        floatVal = 0;
+    }
+    decimalStr = formatDecimal(floatVal);
+  } else {
+    // Integer - calculate based on signed/unsigned
+    let signedVal;
+    switch (totalBits) {
+      case 32:
+        signedVal = value | 0;
+        break;
+      case 16:
+        signedVal = (value << 16) >> 16;
+        break;
+      case 8:
+        signedVal = (value << 24) >> 24;
+        break;
+      default:
+        signedVal = value;
+    }
+    const mask = totalBits === 32 ? 0xFFFFFFFF : ((1 << totalBits) - 1);
+    const unsignedVal = (value & mask) >>> 0;
+
+    if (format.signed) {
+      decimalStr = `${signedVal}`;
+    } else {
+      decimalStr = `${unsignedVal}`;
+    }
+  }
+
+  document.getElementById('bitEditorDecimal').textContent =
+      `Value: ${decimalStr}`;
+}
+
+// Convert from bits and show all representations
+function convertFromBits() {
+  const formatSelect = document.getElementById('bitEditorFormat');
+  const format = bitEditorFormats[formatSelect.value];
+  const totalBits = format.totalBits;
+
+  // Calculate value from bits
+  let value = 0;
+  for (let i = 0; i < totalBits; i++) {
+    if (bitEditorBits[i]) {
+      value |= (1 << i);
+    }
+  }
+
+  // Convert to hex string and use existing convertHexToFloat
+  const hexDigits = Math.ceil(totalBits / 4);
+  const hexStr =
+      (value >>> 0).toString(16).toUpperCase().padStart(hexDigits, '0');
+
+  // Set the hex input and trigger conversion
+  document.getElementById('hexInput').value = hexStr;
+  convertHexToFloat();
+}
+
 // Call hideAllFormatCards when the page loads
 if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', hideAllFormatCards);
+  document.addEventListener('DOMContentLoaded', () => {
+    hideAllFormatCards();
+    initBitEditor();
+  });
 }
 
 // Export functions for Node.js testing
@@ -1637,7 +1880,6 @@ if (typeof module !== 'undefined' && module.exports) {
     formatDecimal,
     analyzePrecision,
     formatPrecisionDetails,
-    analyzePrecision,
     getCompatibleFormats
   };
 }
