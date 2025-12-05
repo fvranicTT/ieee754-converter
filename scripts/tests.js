@@ -1101,3 +1101,574 @@ describe('formatDecimal - Precision Display', () => {
         result.length >= 10, `Expected high precision for 0.1, got: ${result}`);
   });
 });
+
+// ============================================================================
+// Bit Editor Tests - Bit Pattern to Value Conversions
+// ============================================================================
+
+describe('Bit Editor - Float32 Bit Patterns', () => {
+  it('All zeros = 0.0', () => {
+    const bits = 0x00000000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.ok(isPositiveZero(result), 'Should be positive zero');
+  });
+
+  it('Sign bit only (0x80000000) = -0.0', () => {
+    const bits = 0x80000000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.ok(isNegativeZero(result), 'Should be negative zero');
+  });
+
+  it('0x3F800000 = 1.0', () => {
+    const bits = 0x3F800000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.strictEqual(result, 1.0);
+  });
+
+  it('0x40000000 = 2.0', () => {
+    const bits = 0x40000000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.strictEqual(result, 2.0);
+  });
+
+  it('0x7F7FFFFF = max normal (approx 3.4e38)', () => {
+    const bits = 0x7F7FFFFF;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assertClose(result, 3.4028234663852886e+38, 1e30);
+  });
+
+  it('0x7F800000 = +Infinity', () => {
+    const bits = 0x7F800000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.strictEqual(result, Infinity);
+  });
+
+  it('0xFF800000 = -Infinity', () => {
+    const bits = 0xFF800000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.strictEqual(result, -Infinity);
+  });
+
+  it('0x7FC00000 = NaN (quiet NaN)', () => {
+    const bits = 0x7FC00000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.ok(Number.isNaN(result), 'Should be NaN');
+  });
+
+  it('0x00000001 = smallest positive subnormal', () => {
+    const bits = 0x00000001;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assertClose(result, Math.pow(2, -149), 1e-50);
+  });
+
+  it('0x00800000 = smallest positive normal', () => {
+    const bits = 0x00800000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assertClose(result, Math.pow(2, -126), 1e-40);
+  });
+});
+
+describe('Bit Editor - FP8 E4M3 Bit Patterns', () => {
+  it('0x00 = 0.0', () => {
+    assert.ok(isPositiveZero(fp8E4M3ToFloat(0x00)), 'Should be positive zero');
+  });
+
+  it('0x80 = -0.0', () => {
+    assert.ok(isNegativeZero(fp8E4M3ToFloat(0x80)), 'Should be negative zero');
+  });
+
+  it('0x38 = 1.0 (exp=7, mant=0)', () => {
+    // 0x38 = 0011 1000 = sign:0, exp:0111, mant:000
+    assert.strictEqual(fp8E4M3ToFloat(0x38), 1.0);
+  });
+
+  it('0x40 = 2.0 (exp=8, mant=0)', () => {
+    // 0x40 = 0100 0000 = sign:0, exp:1000, mant:000
+    assert.strictEqual(fp8E4M3ToFloat(0x40), 2.0);
+  });
+
+  it('0x77 = 240 (max normal value)', () => {
+    // 0x77 = 0111 0111 = sign:0, exp:1110, mant:111
+    // value = 1.875 * 2^7 = 240
+    assert.strictEqual(fp8E4M3ToFloat(0x77), 240);
+  });
+
+  it('0xF7 = -240 (min normal value)', () => {
+    // 0xF7 = 1111 0111 = sign:1, exp:1110, mant:111
+    assert.strictEqual(fp8E4M3ToFloat(0xF7), -240);
+  });
+
+  it('0x78 = +Infinity (exp=1111, mant=000)', () => {
+    assert.strictEqual(fp8E4M3ToFloat(0x78), Infinity);
+  });
+
+  it('0xF8 = -Infinity', () => {
+    assert.strictEqual(fp8E4M3ToFloat(0xF8), -Infinity);
+  });
+
+  it('0x79 = NaN (exp=1111, mant!=0)', () => {
+    assert.ok(Number.isNaN(fp8E4M3ToFloat(0x79)), 'Should be NaN');
+  });
+
+  it('0x01 = smallest subnormal = 2^-9', () => {
+    assertClose(fp8E4M3ToFloat(0x01), Math.pow(2, -9), 1e-10);
+  });
+
+  it('0x08 = smallest normal = 2^-6', () => {
+    // 0x08 = 0000 1000 = sign:0, exp:0001, mant:000
+    assertClose(fp8E4M3ToFloat(0x08), Math.pow(2, -6), 1e-10);
+  });
+
+  it('0x3A = 1.25 (exp=7, mant=010)', () => {
+    assert.strictEqual(fp8E4M3ToFloat(0x3A), 1.25);
+  });
+
+  it('0x3C = 1.5 (exp=7, mant=100)', () => {
+    assert.strictEqual(fp8E4M3ToFloat(0x3C), 1.5);
+  });
+
+  it('0x3E = 1.75 (exp=7, mant=110)', () => {
+    assert.strictEqual(fp8E4M3ToFloat(0x3E), 1.75);
+  });
+});
+
+describe('Bit Editor - FP8 E5M2 Bit Patterns', () => {
+  it('0x00 = 0.0', () => {
+    assert.ok(isPositiveZero(fp8E5M2ToFloat(0x00)), 'Should be positive zero');
+  });
+
+  it('0x80 = -0.0', () => {
+    assert.ok(isNegativeZero(fp8E5M2ToFloat(0x80)), 'Should be negative zero');
+  });
+
+  it('0x3C = 1.0 (exp=15, mant=0)', () => {
+    assert.strictEqual(fp8E5M2ToFloat(0x3C), 1.0);
+  });
+
+  it('0x40 = 2.0', () => {
+    assert.strictEqual(fp8E5M2ToFloat(0x40), 2.0);
+  });
+
+  it('0x7B = 57344 (max normal value)', () => {
+    // 0x7B = 0111 1011 = sign:0, exp:11110, mant:11
+    // value = 1.75 * 2^15 = 57344
+    assert.strictEqual(fp8E5M2ToFloat(0x7B), 57344);
+  });
+
+  it('0x7C = +Infinity (exp=11111, mant=00)', () => {
+    assert.strictEqual(fp8E5M2ToFloat(0x7C), Infinity);
+  });
+
+  it('0xFC = -Infinity', () => {
+    assert.strictEqual(fp8E5M2ToFloat(0xFC), -Infinity);
+  });
+
+  it('0x7D = NaN (exp=11111, mant!=0)', () => {
+    assert.ok(Number.isNaN(fp8E5M2ToFloat(0x7D)), 'Should be NaN');
+  });
+
+  it('0x01 = smallest subnormal = 2^-16', () => {
+    assertClose(fp8E5M2ToFloat(0x01), Math.pow(2, -16), 1e-10);
+  });
+
+  it('0x3E = 1.5 (exp=15, mant=10)', () => {
+    assert.strictEqual(fp8E5M2ToFloat(0x3E), 1.5);
+  });
+});
+
+describe('Bit Editor - Float16 Bit Patterns', () => {
+  it('0x0000 = 0.0', () => {
+    assert.ok(
+        isPositiveZero(float16ToFloat32(0x0000)), 'Should be positive zero');
+  });
+
+  it('0x8000 = -0.0', () => {
+    assert.ok(
+        isNegativeZero(float16ToFloat32(0x8000)), 'Should be negative zero');
+  });
+
+  it('0x3C00 = 1.0', () => {
+    assert.strictEqual(float16ToFloat32(0x3C00), 1.0);
+  });
+
+  it('0x4000 = 2.0', () => {
+    assert.strictEqual(float16ToFloat32(0x4000), 2.0);
+  });
+
+  it('0x7BFF = 65504 (max normal value)', () => {
+    assert.strictEqual(float16ToFloat32(0x7BFF), 65504);
+  });
+
+  it('0x7C00 = +Infinity', () => {
+    assert.strictEqual(float16ToFloat32(0x7C00), Infinity);
+  });
+
+  it('0xFC00 = -Infinity', () => {
+    assert.strictEqual(float16ToFloat32(0xFC00), -Infinity);
+  });
+
+  it('0x7E00 = NaN', () => {
+    assert.ok(Number.isNaN(float16ToFloat32(0x7E00)), 'Should be NaN');
+  });
+
+  it('0x0001 = smallest subnormal = 2^-24', () => {
+    assertClose(float16ToFloat32(0x0001), Math.pow(2, -24), 1e-10);
+  });
+
+  it('0x0400 = smallest normal = 2^-14', () => {
+    assertClose(float16ToFloat32(0x0400), Math.pow(2, -14), 1e-10);
+  });
+});
+
+describe('Bit Editor - BFloat16 Bit Patterns', () => {
+  it('0x0000 = 0.0', () => {
+    assert.ok(
+        isPositiveZero(bfloat16ToFloat32(0x0000)), 'Should be positive zero');
+  });
+
+  it('0x8000 = -0.0', () => {
+    assert.ok(
+        isNegativeZero(bfloat16ToFloat32(0x8000)), 'Should be negative zero');
+  });
+
+  it('0x3F80 = 1.0', () => {
+    assert.strictEqual(bfloat16ToFloat32(0x3F80), 1.0);
+  });
+
+  it('0x4000 = 2.0', () => {
+    assert.strictEqual(bfloat16ToFloat32(0x4000), 2.0);
+  });
+
+  it('0x7F7F = max normal (approx 3.39e38)', () => {
+    // BFloat16 max: sign=0, exp=11111110, mant=1111111
+    const result = bfloat16ToFloat32(0x7F7F);
+    assertClose(result, 3.39e38, 1e36);
+  });
+
+  it('0x7F80 = +Infinity', () => {
+    assert.strictEqual(bfloat16ToFloat32(0x7F80), Infinity);
+  });
+
+  it('0xFF80 = -Infinity', () => {
+    assert.strictEqual(bfloat16ToFloat32(0xFF80), -Infinity);
+  });
+
+  it('0x7FC0 = NaN', () => {
+    assert.ok(Number.isNaN(bfloat16ToFloat32(0x7FC0)), 'Should be NaN');
+  });
+});
+
+describe('Bit Editor - Integer Bit Patterns', () => {
+  it('Int32: 0x00000001 = 1', () => {
+    const bits = 0x00000001;
+    const result = bits | 0;  // Convert to signed
+    assert.strictEqual(result, 1);
+  });
+
+  it('Int32: 0x7FFFFFFF = 2147483647 (max)', () => {
+    const bits = 0x7FFFFFFF;
+    const result = bits | 0;
+    assert.strictEqual(result, 2147483647);
+  });
+
+  it('Int32: 0x80000000 = -2147483648 (min)', () => {
+    const bits = 0x80000000;
+    const result = bits | 0;
+    assert.strictEqual(result, -2147483648);
+  });
+
+  it('Int32: 0xFFFFFFFF = -1', () => {
+    const bits = 0xFFFFFFFF;
+    const result = bits | 0;
+    assert.strictEqual(result, -1);
+  });
+
+  it('UInt32: 0xFFFFFFFF = 4294967295', () => {
+    const bits = 0xFFFFFFFF;
+    const result = bits >>> 0;  // Convert to unsigned
+    assert.strictEqual(result, 4294967295);
+  });
+
+  it('Int16: 0x7FFF = 32767 (max)', () => {
+    const bits = 0x7FFF;
+    const result = (bits << 16) >> 16;  // Sign extend
+    assert.strictEqual(result, 32767);
+  });
+
+  it('Int16: 0x8000 = -32768 (min)', () => {
+    const bits = 0x8000;
+    const result = (bits << 16) >> 16;
+    assert.strictEqual(result, -32768);
+  });
+
+  it('Int16: 0xFFFF = -1', () => {
+    const bits = 0xFFFF;
+    const result = (bits << 16) >> 16;
+    assert.strictEqual(result, -1);
+  });
+
+  it('UInt16: 0xFFFF = 65535', () => {
+    const bits = 0xFFFF;
+    const result = bits & 0xFFFF;
+    assert.strictEqual(result, 65535);
+  });
+
+  it('Int8: 0x7F = 127 (max)', () => {
+    const bits = 0x7F;
+    const result = (bits << 24) >> 24;
+    assert.strictEqual(result, 127);
+  });
+
+  it('Int8: 0x80 = -128 (min)', () => {
+    const bits = 0x80;
+    const result = (bits << 24) >> 24;
+    assert.strictEqual(result, -128);
+  });
+
+  it('Int8: 0xFF = -1', () => {
+    const bits = 0xFF;
+    const result = (bits << 24) >> 24;
+    assert.strictEqual(result, -1);
+  });
+
+  it('UInt8: 0xFF = 255', () => {
+    const bits = 0xFF;
+    const result = bits & 0xFF;
+    assert.strictEqual(result, 255);
+  });
+});
+
+describe('Bit Editor - Boundary Values', () => {
+  it('FP8 E4M3: verify all subnormal values', () => {
+    // Subnormals: exp=0, mant=001 to 111
+    const expected = [
+      {bits: 0x01, value: Math.pow(2, -9)},      // 0.001 * 2^-6
+      {bits: 0x02, value: Math.pow(2, -8)},      // 0.010 * 2^-6
+      {bits: 0x03, value: 3 * Math.pow(2, -9)},  // 0.011 * 2^-6
+      {bits: 0x04, value: Math.pow(2, -7)},      // 0.100 * 2^-6
+      {bits: 0x05, value: 5 * Math.pow(2, -9)},  // 0.101 * 2^-6
+      {bits: 0x06, value: 6 * Math.pow(2, -9)},  // 0.110 * 2^-6
+      {bits: 0x07, value: 7 * Math.pow(2, -9)},  // 0.111 * 2^-6
+    ];
+
+    for (const {bits, value} of expected) {
+      assertClose(
+          fp8E4M3ToFloat(bits), value, 1e-10,
+          `Bits 0x${bits.toString(16).toUpperCase()}: `);
+    }
+  });
+
+  it('FP8 E4M3: transition from subnormal to normal', () => {
+    // Largest subnormal: 0x07 = 0.111 * 2^-6 = 7/512
+    const largestSubnormal = fp8E4M3ToFloat(0x07);
+    // Smallest normal: 0x08 = 1.000 * 2^-6 = 1/64
+    const smallestNormal = fp8E4M3ToFloat(0x08);
+
+    assert.ok(
+        smallestNormal > largestSubnormal,
+        `Smallest normal (${smallestNormal}) should be > largest subnormal (${
+            largestSubnormal})`);
+  });
+
+  it('FP8 E5M2: verify max value 57344', () => {
+    // 0x7B = sign:0, exp:11110 (30-15=15), mant:11 (1.75)
+    // value = 1.75 * 2^15 = 57344
+    const result = fp8E5M2ToFloat(0x7B);
+    assert.strictEqual(result, 57344);
+  });
+
+  it('Float16: verify all powers of 2 in range', () => {
+    const testCases = [
+      {exp: -14, bits: 0x0400},  // Smallest normal
+      {exp: -1, bits: 0x3800},   // 0.5
+      {exp: 0, bits: 0x3C00},    // 1.0
+      {exp: 1, bits: 0x4000},    // 2.0
+      {exp: 15, bits: 0x7800},   // 32768
+    ];
+
+    for (const {exp, bits} of testCases) {
+      const result = float16ToFloat32(bits);
+      assertClose(result, Math.pow(2, exp), 1e-10, `2^${exp}: `);
+    }
+  });
+});
+
+describe('Bit Editor - Unsigned Integer Patterns', () => {
+  it('UInt8: 0x00 = 0', () => {
+    const bits = 0x00;
+    assert.strictEqual(bits & 0xFF, 0);
+  });
+
+  it('UInt8: 0x80 = 128 (not -128)', () => {
+    const bits = 0x80;
+    assert.strictEqual(bits & 0xFF, 128);
+  });
+
+  it('UInt8: 0xFF = 255 (not -1)', () => {
+    const bits = 0xFF;
+    assert.strictEqual(bits & 0xFF, 255);
+  });
+
+  it('UInt16: 0x8000 = 32768 (not -32768)', () => {
+    const bits = 0x8000;
+    assert.strictEqual(bits & 0xFFFF, 32768);
+  });
+
+  it('UInt16: 0xFFFF = 65535 (not -1)', () => {
+    const bits = 0xFFFF;
+    assert.strictEqual(bits & 0xFFFF, 65535);
+  });
+
+  it('UInt32: 0x80000000 = 2147483648 (not -2147483648)', () => {
+    const bits = 0x80000000;
+    assert.strictEqual(bits >>> 0, 2147483648);
+  });
+
+  it('UInt32: 0xFFFFFFFF = 4294967295 (not -1)', () => {
+    const bits = 0xFFFFFFFF;
+    assert.strictEqual(bits >>> 0, 4294967295);
+  });
+
+  it('UInt32: 0xDEADBEEF = 3735928559', () => {
+    const bits = 0xDEADBEEF;
+    assert.strictEqual(bits >>> 0, 3735928559);
+  });
+});
+
+describe('Bit Editor - Signed vs Unsigned Comparison', () => {
+  it('Int8 vs UInt8: 0x80 differs in interpretation', () => {
+    const bits = 0x80;
+    const signed = (bits << 24) >> 24;
+    const unsigned = bits & 0xFF;
+    assert.strictEqual(signed, -128);
+    assert.strictEqual(unsigned, 128);
+  });
+
+  it('Int16 vs UInt16: 0x8000 differs in interpretation', () => {
+    const bits = 0x8000;
+    const signed = (bits << 16) >> 16;
+    const unsigned = bits & 0xFFFF;
+    assert.strictEqual(signed, -32768);
+    assert.strictEqual(unsigned, 32768);
+  });
+
+  it('Int32 vs UInt32: 0x80000000 differs in interpretation', () => {
+    const bits = 0x80000000;
+    const signed = bits | 0;
+    const unsigned = bits >>> 0;
+    assert.strictEqual(signed, -2147483648);
+    assert.strictEqual(unsigned, 2147483648);
+  });
+
+  it('Int32 vs UInt32: 0xFFFFFFFF differs in interpretation', () => {
+    const bits = 0xFFFFFFFF;
+    const signed = bits | 0;
+    const unsigned = bits >>> 0;
+    assert.strictEqual(signed, -1);
+    assert.strictEqual(unsigned, 4294967295);
+  });
+});
+
+describe('Bit Editor - Binary String Output', () => {
+  it('Float32: 0x3F800000 (1.0) produces correct 32-bit binary', () => {
+    const bits = 0x3F800000;
+    const binary = (bits >>> 0).toString(2).padStart(32, '0');
+    assert.strictEqual(binary, '00111111100000000000000000000000');
+    assert.strictEqual(binary.length, 32);
+  });
+
+  it('Float16: 0x3C00 (1.0) produces correct 16-bit binary', () => {
+    const bits = 0x3C00;
+    const binary = (bits >>> 0).toString(2).padStart(16, '0');
+    assert.strictEqual(binary, '0011110000000000');
+    assert.strictEqual(binary.length, 16);
+  });
+
+  it('FP8 E4M3: 0x38 (1.0) produces correct 8-bit binary', () => {
+    const bits = 0x38;
+    const binary = (bits >>> 0).toString(2).padStart(8, '0');
+    assert.strictEqual(binary, '00111000');
+    assert.strictEqual(binary.length, 8);
+  });
+
+  it('FP8 E4M3: 0x77 (240 max) produces correct 8-bit binary', () => {
+    const bits = 0x77;
+    const binary = (bits >>> 0).toString(2).padStart(8, '0');
+    assert.strictEqual(binary, '01110111');
+  });
+
+  it('FP8 E4M3: 0x78 (Infinity) produces correct 8-bit binary', () => {
+    const bits = 0x78;
+    const binary = (bits >>> 0).toString(2).padStart(8, '0');
+    assert.strictEqual(binary, '01111000');
+  });
+
+  it('Int8: 0xFF (-1 signed, 255 unsigned) produces correct binary', () => {
+    const bits = 0xFF;
+    const binary = (bits >>> 0).toString(2).padStart(8, '0');
+    assert.strictEqual(binary, '11111111');
+  });
+
+  it('Int32: 0x80000000 (-2147483648) produces correct binary', () => {
+    const bits = 0x80000000;
+    const binary = (bits >>> 0).toString(2).padStart(32, '0');
+    assert.strictEqual(binary, '10000000000000000000000000000000');
+    assert.strictEqual(binary.length, 32);
+  });
+
+  it('Zero produces all zeros for any bit width', () => {
+    assert.strictEqual((0).toString(2).padStart(8, '0'), '00000000');
+    assert.strictEqual((0).toString(2).padStart(16, '0'), '0000000000000000');
+    assert.strictEqual(
+        (0).toString(2).padStart(32, '0'), '00000000000000000000000000000000');
+  });
+
+  it('All ones produces correct binary for each width', () => {
+    assert.strictEqual((0xFF >>> 0).toString(2).padStart(8, '0'), '11111111');
+    assert.strictEqual(
+        (0xFFFF >>> 0).toString(2).padStart(16, '0'), '1111111111111111');
+    assert.strictEqual(
+        (0xFFFFFFFF >>> 0).toString(2).padStart(32, '0'),
+        '11111111111111111111111111111111');
+  });
+});
+
+describe('Bit Editor - Float32 Special Values from Bit Patterns', () => {
+  it('0x7F800000 = +Infinity (all exp bits set, mant=0)', () => {
+    const bits = 0x7F800000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.strictEqual(result, Infinity);
+  });
+
+  it('0xFF800000 = -Infinity (sign=1, all exp bits set, mant=0)', () => {
+    const bits = 0xFF800000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.strictEqual(result, -Infinity);
+  });
+
+  it('0x7F000000 = 1.7e38 (exp=254, NOT Infinity)', () => {
+    // This is what you get if you only set 7 exponent bits instead of 8
+    const bits = 0x7F000000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.ok(isFinite(result), 'Should be finite, not Infinity');
+    assertClose(result, Math.pow(2, 127), 1e30);
+  });
+
+  it('0x7FC00000 = quiet NaN (exp=255, mant MSB set)', () => {
+    const bits = 0x7FC00000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.ok(Number.isNaN(result), 'Should be NaN');
+  });
+
+  it('0x7F800001 = signaling NaN (exp=255, mant LSB set)', () => {
+    const bits = 0x7F800001;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assert.ok(Number.isNaN(result), 'Should be NaN');
+  });
+
+  it('0x00400000 = smallest Float32 subnormal with MSB of mantissa', () => {
+    const bits = 0x00400000;
+    const result = new Float32Array(new Uint32Array([bits]).buffer)[0];
+    assertClose(result, Math.pow(2, -127), 1e-45);
+  });
+});
