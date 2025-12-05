@@ -110,6 +110,35 @@ h2::after {
    ============================================ */
 
 /* Input containers */
+/* Side-by-side converter row */
+.converter-row {
+  display: flex;
+  gap: 20px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto 20px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.converter-row .input-section {
+  flex: 1;
+  margin: 0;
+  max-width: none;
+}
+
+@media (max-width: 768px) {
+  .converter-row {
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .converter-row .input-section {
+    margin: 0 auto 20px;
+    max-width: 720px;
+  }
+}
+
 .input-section {
   max-width: 720px;
   margin: 0 auto 20px;

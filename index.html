@@ -27,20 +27,6 @@
             </div>
         </div>
 
-        <!-- Decimal to Hex Conversion -->
-        <div class="input-section">
-            <label for="input">Enter a floating-point number</label>
-            <input type="text" id="input" placeholder="e.g., 3.14159, -0.5, 1e-10">
-            <button onclick="convertFloatToHex()">Convert to Hex</button>
-        </div>
-
-        <!-- Hex to Float/Int Conversion -->
-        <div class="input-section">
-            <label for="hexInput">Enter a hexadecimal number</label>
-            <input type="text" id="hexInput" placeholder="e.g., 40490FDB, 3C00, 7C">
-            <button onclick="convertHexToFloat()">Convert from Hex</button>
-        </div>
-
         <!-- Bit Editor -->
         <div class="input-section bit-editor-section">
             <label>Click bits to toggle (32-bit)</label>
@@ -70,6 +56,23 @@
                 <span id="bitEditorDecimal">Value: 0</span>
             </div>
             <button onclick="convertFromBits()">Convert from Bits</button>
+        </div>
+
+        <!-- Text-based Converters (side by side) -->
+        <div class="converter-row">
+            <!-- Decimal to Hex Conversion -->
+            <div class="input-section">
+                <label for="input">Enter a floating-point number</label>
+                <input type="text" id="input" placeholder="e.g., 3.14159, -0.5, 1e-10">
+                <button onclick="convertFloatToHex()">Convert to Hex</button>
+            </div>
+
+            <!-- Hex to Float/Int Conversion -->
+            <div class="input-section">
+                <label for="hexInput">Enter a hexadecimal number</label>
+                <input type="text" id="hexInput" placeholder="e.g., 40490FDB, 3C00, 7C">
+                <button onclick="convertHexToFloat()">Convert from Hex</button>
+            </div>
         </div>
 
         <!-- Floating-Point Results -->
