@@ -131,11 +131,18 @@ h2::after {
   .converter-row {
     flex-direction: column;
     padding: 0;
+    max-width: 100%;
   }
 
   .converter-row .input-section {
     margin: 0 auto 20px;
-    max-width: 720px;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .input-section.bit-editor-section {
+    max-width: 100%;
+    width: 100%;
   }
 }
 
@@ -1007,7 +1014,17 @@ button:active {
     word-break: break-all;
   }
 
-  .input-section.bit-editor-section {
-    padding: 20px 12px;
+  /* Ensure consistent alignment across all input sections on mobile */
+  .input-section,
+  .input-section.bit-editor-section,
+  .converter-row .input-section {
+    padding: 20px 16px;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    padding: 20px 16px;
   }
 }
