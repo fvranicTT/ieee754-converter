@@ -123,21 +123,21 @@ describe('BFloat16 Conversions', () => {
     assertClose(result, 1e38, 1e36);
   });
 
-  it('Convert small value 1e-38 to BFloat16', () => {
+  it('Convert small value 1e-38 to BFloat16 (underflows to zero)', () => {
     const bits = floatToBfloat16(1e-38);
-    const result = bfloat16ToFloat32(bits);
-    assertClose(result, 1e-38, 2e-39);
+    assertHex(bits, 0x0000);
+    assert.ok(
+        isPositiveZero(bfloat16ToFloat32(bits)), 'Should underflow to zero');
   });
 
-  it('Convert BFloat16 subnormal 0x0001 to Float32', () => {
+  it('BFloat16 subnormal 0x0001 flushes to zero', () => {
     const result = bfloat16ToFloat32(0x0001);
-    assertClose(result, Math.pow(2, -133), 1e-45);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
-  it('Convert BFloat16 subnormal 0x007F to Float32', () => {
+  it('BFloat16 subnormal 0x007F flushes to zero', () => {
     const result = bfloat16ToFloat32(0x007F);
-    const expected = (127 / 128) * Math.pow(2, -126);
-    assertClose(result, expected, 1e-40);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
   it('Hex 0x4048 should decode to ~3.125', () => {
@@ -230,22 +230,22 @@ describe('Float16 (FP16) Conversions', () => {
     assertHex(bits, 0xFC00);
   });
 
-  it('Convert Float16 subnormal 0x0001 to Float32', () => {
+  it('Float16 subnormal 0x0001 flushes to zero', () => {
     const result = float16ToFloat32(0x0001);
-    assertClose(result, Math.pow(2, -24), 1e-10);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
-  it('Convert Float16 subnormal 0x03FF to Float32', () => {
+  it('Float16 subnormal 0x03FF flushes to zero', () => {
     const result = float16ToFloat32(0x03FF);
-    const expected = (1023 / 1024) * Math.pow(2, -14);
-    assertClose(result, expected, 1e-10);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
-  it('Convert very small value to Float16 (becomes subnormal)', () => {
+  it('Very small value underflows to zero in Float16', () => {
     const value = Math.pow(2, -20);
     const bits = floatToFloat16(value);
-    const result = float16ToFloat32(bits);
-    assertClose(result, value, 1e-10);
+    assertHex(bits, 0x0000);
+    assert.ok(
+        isPositiveZero(float16ToFloat32(bits)), 'Should underflow to zero');
   });
 
   it('Float16 rounding - round up case', () => {
@@ -333,19 +333,14 @@ describe('TF32 Conversions', () => {
     assertClose(result, 1e38, 1e35);
   });
 
-  it('Convert TF32 subnormal 0x00001 to Float32', () => {
-    // Smallest TF32 subnormal: exp=0, mantissa=1
-    // Value = (1/1024) * 2^(-126) = 2^(-136)
+  it('TF32 subnormal 0x00001 flushes to zero', () => {
     const result = tf32ToFloat32(0x00001);
-    assertClose(result, Math.pow(2, -136), 1e-45);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
-  it('Convert TF32 subnormal 0x003FF to Float32', () => {
-    // Largest TF32 subnormal: exp=0, mantissa=1023
-    // Value = (1023/1024) * 2^(-126)
+  it('TF32 subnormal 0x003FF flushes to zero', () => {
     const result = tf32ToFloat32(0x003FF);
-    const expected = (1023 / 1024) * Math.pow(2, -126);
-    assertClose(result, expected, 1e-42);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 });
 
@@ -421,21 +416,21 @@ describe('FP8 E5M2 Conversions', () => {
     assertHex(bits, 0x7C);
   });
 
-  it('FP8 E5M2 subnormal 0x01 converts correctly', () => {
+  it('FP8 E5M2 subnormal 0x01 flushes to zero', () => {
     const result = fp8E5M2ToFloat(0x01);
-    assertClose(result, Math.pow(2, -16), 1e-10);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
-  it('FP8 E5M2 subnormal 0x03 converts correctly', () => {
+  it('FP8 E5M2 subnormal 0x03 flushes to zero', () => {
     const result = fp8E5M2ToFloat(0x03);
-    assertClose(result, 0.75 * Math.pow(2, -14), 1e-10);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
-  it('Convert small value to FP8 E5M2 (becomes subnormal)', () => {
+  it('Small value underflows to zero in FP8 E5M2', () => {
     const value = Math.pow(2, -15);
     const bits = floatToFP8E5M2(value);
-    const result = fp8E5M2ToFloat(bits);
-    assertClose(result, value, 1e-6);
+    assertHex(bits, 0x00);
+    assert.ok(isPositiveZero(fp8E5M2ToFloat(bits)), 'Should underflow to zero');
   });
 
   it('Hex 0x41 decodes to 2.5', () => {
@@ -527,14 +522,14 @@ describe('FP8 E4M3 Conversions', () => {
     assertHex(bits, 0x78);
   });
 
-  it('FP8 E4M3 subnormal 0x01 converts correctly', () => {
+  it('FP8 E4M3 subnormal 0x01 flushes to zero', () => {
     const result = fp8E4M3ToFloat(0x01);
-    assertClose(result, Math.pow(2, -9), 1e-10);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
-  it('FP8 E4M3 subnormal 0x07 converts correctly', () => {
+  it('FP8 E4M3 subnormal 0x07 flushes to zero', () => {
     const result = fp8E4M3ToFloat(0x07);
-    assertClose(result, 0.875 * Math.pow(2, -6), 1e-10);
+    assert.ok(isPositiveZero(result), 'Subnormal should flush to zero');
   });
 
   it('Hex 0x42 decodes to 2.5', () => {
@@ -619,10 +614,12 @@ describe('Edge Cases and Boundary Values', () => {
     assertClose(float16ToFloat32(bits), minNormal, 1e-10);
   });
 
-  it('Float16 min subnormal value', () => {
-    const minSubnormal = Math.pow(2, -24);
-    const bits = floatToFloat16(minSubnormal);
-    assertClose(float16ToFloat32(bits), minSubnormal, 1e-10);
+  it('Float16 subnormal value underflows to zero', () => {
+    const value = Math.pow(2, -24);
+    const bits = floatToFloat16(value);
+    assertHex(bits, 0x0000);
+    assert.ok(
+        isPositiveZero(float16ToFloat32(bits)), 'Should underflow to zero');
   });
 
   it('BFloat16 preserves Float32 range', () => {
@@ -646,16 +643,18 @@ describe('Edge Cases and Boundary Values', () => {
     assert.strictEqual(result, 240);
   });
 
-  it('Negative subnormals work correctly', () => {
+  it('Negative subnormals flush to negative zero', () => {
     const f16Result = float16ToFloat32(0x8001);
-    assert.ok(f16Result < 0, 'Should be negative');
-    assertClose(f16Result, -Math.pow(2, -24), 1e-10);
+    assert.ok(
+        isNegativeZero(f16Result), 'Float16 subnormal should flush to -0');
 
     const fp8e5m2Result = fp8E5M2ToFloat(0x81);
-    assert.ok(fp8e5m2Result < 0, 'Should be negative');
+    assert.ok(
+        isNegativeZero(fp8e5m2Result), 'FP8 E5M2 subnormal should flush to -0');
 
     const fp8e4m3Result = fp8E4M3ToFloat(0x81);
-    assert.ok(fp8e4m3Result < 0, 'Should be negative');
+    assert.ok(
+        isNegativeZero(fp8e4m3Result), 'FP8 E4M3 subnormal should flush to -0');
   });
 
   it('Very small values underflow to zero correctly', () => {
@@ -912,14 +911,15 @@ describe('Compatible Formats Analysis', () => {
     assert.ok(!formats.includes('FP8 E4M3'), 'Should NOT include FP8 E4M3');
   });
 
-  it('Exponent -15 excludes Float16 and FP8 (need subnormal or out of range)',
-     () => {
-       const formats = getCompatibleFormats(Math.pow(2, -15), 0, -15);
-       assert.ok(formats.includes('Float32'), 'Should include Float32');
-       assert.ok(formats.includes('TF32'), 'Should include TF32');
-       assert.ok(formats.includes('BFloat16'), 'Should include BFloat16');
-       // Float16 and FP8 E5M2 might represent as subnormal
-     });
+  it('Exponent -15 excludes Float16 and FP8 (out of normal range)', () => {
+    const formats = getCompatibleFormats(Math.pow(2, -15), 0, -15);
+    assert.ok(formats.includes('Float32'), 'Should include Float32');
+    assert.ok(formats.includes('TF32'), 'Should include TF32');
+    assert.ok(formats.includes('BFloat16'), 'Should include BFloat16');
+    assert.ok(!formats.includes('Float16'), 'Should NOT include Float16');
+    assert.ok(!formats.includes('FP8 E5M2'), 'Should NOT include FP8 E5M2');
+    assert.ok(!formats.includes('FP8 E4M3'), 'Should NOT include FP8 E4M3');
+  });
 
   it('Zero is compatible with all formats', () => {
     const formats = getCompatibleFormats(0, 0, 0);
@@ -1210,8 +1210,9 @@ describe('Bit Editor - FP8 E4M3 Bit Patterns', () => {
     assert.ok(Number.isNaN(fp8E4M3ToFloat(0x79)), 'Should be NaN');
   });
 
-  it('0x01 = smallest subnormal = 2^-9', () => {
-    assertClose(fp8E4M3ToFloat(0x01), Math.pow(2, -9), 1e-10);
+  it('0x01 = subnormal flushes to zero', () => {
+    assert.ok(
+        isPositiveZero(fp8E4M3ToFloat(0x01)), 'Subnormal should flush to zero');
   });
 
   it('0x08 = smallest normal = 2^-6', () => {
@@ -1267,8 +1268,9 @@ describe('Bit Editor - FP8 E5M2 Bit Patterns', () => {
     assert.ok(Number.isNaN(fp8E5M2ToFloat(0x7D)), 'Should be NaN');
   });
 
-  it('0x01 = smallest subnormal = 2^-16', () => {
-    assertClose(fp8E5M2ToFloat(0x01), Math.pow(2, -16), 1e-10);
+  it('0x01 = subnormal flushes to zero', () => {
+    assert.ok(
+        isPositiveZero(fp8E5M2ToFloat(0x01)), 'Subnormal should flush to zero');
   });
 
   it('0x3E = 1.5 (exp=15, mant=10)', () => {
@@ -1311,8 +1313,10 @@ describe('Bit Editor - Float16 Bit Patterns', () => {
     assert.ok(Number.isNaN(float16ToFloat32(0x7E00)), 'Should be NaN');
   });
 
-  it('0x0001 = smallest subnormal = 2^-24', () => {
-    assertClose(float16ToFloat32(0x0001), Math.pow(2, -24), 1e-10);
+  it('0x0001 = subnormal flushes to zero', () => {
+    assert.ok(
+        isPositiveZero(float16ToFloat32(0x0001)),
+        'Subnormal should flush to zero');
   });
 
   it('0x0400 = smallest normal = 2^-14', () => {
@@ -1439,35 +1443,21 @@ describe('Bit Editor - Integer Bit Patterns', () => {
 });
 
 describe('Bit Editor - Boundary Values', () => {
-  it('FP8 E4M3: verify all subnormal values', () => {
-    // Subnormals: exp=0, mant=001 to 111
-    const expected = [
-      {bits: 0x01, value: Math.pow(2, -9)},      // 0.001 * 2^-6
-      {bits: 0x02, value: Math.pow(2, -8)},      // 0.010 * 2^-6
-      {bits: 0x03, value: 3 * Math.pow(2, -9)},  // 0.011 * 2^-6
-      {bits: 0x04, value: Math.pow(2, -7)},      // 0.100 * 2^-6
-      {bits: 0x05, value: 5 * Math.pow(2, -9)},  // 0.101 * 2^-6
-      {bits: 0x06, value: 6 * Math.pow(2, -9)},  // 0.110 * 2^-6
-      {bits: 0x07, value: 7 * Math.pow(2, -9)},  // 0.111 * 2^-6
-    ];
-
-    for (const {bits, value} of expected) {
-      assertClose(
-          fp8E4M3ToFloat(bits), value, 1e-10,
-          `Bits 0x${bits.toString(16).toUpperCase()}: `);
+  it('FP8 E4M3: all subnormal bit patterns flush to zero', () => {
+    for (let bits = 0x01; bits <= 0x07; bits++) {
+      assert.ok(
+          isPositiveZero(fp8E4M3ToFloat(bits)),
+          `Bits 0x${bits.toString(16).toUpperCase()} should flush to zero`);
     }
   });
 
-  it('FP8 E4M3: transition from subnormal to normal', () => {
-    // Largest subnormal: 0x07 = 0.111 * 2^-6 = 7/512
-    const largestSubnormal = fp8E4M3ToFloat(0x07);
-    // Smallest normal: 0x08 = 1.000 * 2^-6 = 1/64
-    const smallestNormal = fp8E4M3ToFloat(0x08);
+  it('FP8 E4M3: smallest normal is first non-zero value', () => {
+    const subnormal = fp8E4M3ToFloat(0x07);
+    assert.ok(isPositiveZero(subnormal), 'Subnormal should be zero');
 
-    assert.ok(
-        smallestNormal > largestSubnormal,
-        `Smallest normal (${smallestNormal}) should be > largest subnormal (${
-            largestSubnormal})`);
+    const smallestNormal = fp8E4M3ToFloat(0x08);
+    assertClose(smallestNormal, Math.pow(2, -6), 1e-10);
+    assert.ok(smallestNormal > 0, 'Smallest normal should be positive');
   });
 
   it('FP8 E5M2: verify max value 57344', () => {

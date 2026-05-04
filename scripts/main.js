@@ -18,7 +18,6 @@ const FORMAT_INFO = {
     expMask: 0xFF,
     mantissaMask: 0x7FFFFF,
     expShift: 23,
-    minSubnormal: Math.pow(2, -149),
     minNormal: Math.pow(2, -126),
     maxNormal: (2 - Math.pow(2, -23)) * Math.pow(2, 127)
   },
@@ -31,7 +30,6 @@ const FORMAT_INFO = {
     expMask: 0xFF,
     mantissaMask: 0x3FF,
     expShift: 10,
-    minSubnormal: Math.pow(2, -136),
     minNormal: Math.pow(2, -126),
     maxNormal: (2 - Math.pow(2, -10)) * Math.pow(2, 127)
   },
@@ -44,7 +42,6 @@ const FORMAT_INFO = {
     expMask: 0xFF,
     mantissaMask: 0x7F,
     expShift: 7,
-    minSubnormal: Math.pow(2, -133),
     minNormal: Math.pow(2, -126),
     maxNormal: (2 - Math.pow(2, -7)) * Math.pow(2, 127)
   },
@@ -57,7 +54,6 @@ const FORMAT_INFO = {
     expMask: 0x1F,
     mantissaMask: 0x3FF,
     expShift: 10,
-    minSubnormal: Math.pow(2, -24),
     minNormal: Math.pow(2, -14),
     maxNormal: (2 - Math.pow(2, -10)) * Math.pow(2, 15)
   },
@@ -70,7 +66,6 @@ const FORMAT_INFO = {
     expMask: 0x1F,
     mantissaMask: 0x3,
     expShift: 2,
-    minSubnormal: Math.pow(2, -16),
     minNormal: Math.pow(2, -14),
     maxNormal: (2 - Math.pow(2, -2)) * Math.pow(2, 15)
   },
@@ -83,7 +78,6 @@ const FORMAT_INFO = {
     expMask: 0xF,
     mantissaMask: 0x7,
     expShift: 3,
-    minSubnormal: Math.pow(2, -9),
     minNormal: Math.pow(2, -6),
     maxNormal: (2 - Math.pow(2, -3)) * Math.pow(2, 7)
   }
@@ -143,14 +137,7 @@ function floatToBfloat16(value) {
   }
 
   if (exponent === 0) {
-    if (mantissa === 0) {
-      // Zero
-      return sign << 15;
-    }
-    // Normalize subnormal number
-    let shift = Math.clz32(mantissa) - 8;
-    mantissa = (mantissa << shift) & 0x7FFFFF;
-    exponent = 1 - shift;
+    return sign << 15;
   }
 
   // Round the mantissa to 7 bits
@@ -178,8 +165,12 @@ function floatToBfloat16(value) {
 
 // Convert Bfloat16 bits back to Float32
 function bfloat16ToFloat32(bfloat16Bits) {
-  // BFloat16 is essentially the upper 16 bits of Float32
-  // So we can simply shift left by 16 to get the Float32 representation
+  let exponent = (bfloat16Bits >>> 7) & 0xFF;
+  let mantissa = bfloat16Bits & 0x7F;
+  if (exponent === 0 && mantissa !== 0) {
+    let sign = (bfloat16Bits & 0x8000) << 16;
+    return bitsToFloat32(sign);
+  }
   return bitsToFloat32(bfloat16Bits << 16);
 }
 
@@ -198,14 +189,7 @@ function floatToTF32(value) {
   }
 
   if (exponent === 0) {
-    if (mantissa === 0) {
-      // Zero
-      return sign << 18;
-    }
-    // Normalize subnormal number
-    let shift = Math.clz32(mantissa) - 8;
-    mantissa = (mantissa << shift) & 0x7FFFFF;
-    exponent = 1 - shift;
+    return sign << 18;
   }
 
   // Round the mantissa to 10 bits
@@ -233,8 +217,12 @@ function floatToTF32(value) {
 
 // Convert TF32 bits back to Float32
 function tf32ToFloat32(tf32Bits) {
-  // TF32 is essentially Float32 with the lower 13 mantissa bits truncated
-  // So we can simply shift left by 13 to get the Float32 representation
+  let exponent = (tf32Bits >>> 10) & 0xFF;
+  let mantissa = tf32Bits & 0x3FF;
+  if (exponent === 0 && mantissa !== 0) {
+    let sign = (tf32Bits >>> 18) & 0x1;
+    return bitsToFloat32(sign << 31);
+  }
   return bitsToFloat32(tf32Bits << 13);
 }
 
@@ -256,37 +244,7 @@ function floatToFloat16(value) {
     halfMant = mantissa !== 0 ? (mantissa >>> 13) | 0x200 :
                                 0;  // Preserve NaN (ensure non-zero mantissa)
   } else if (exponent === 0) {
-    // Handle subnormal Float32 input
-    if (mantissa === 0) {
-      // Zero
-      return halfSign;
-    }
-    // Normalize the subnormal number
-    let shift = Math.clz32(mantissa) - 8;
-    mantissa = (mantissa << shift) & 0x7FFFFF;
-    exponent = 1 - shift;
-
-    // Now proceed with the conversion as if it were normalized
-    let newExp = exponent - 127 + 15;
-    if (newExp < -10) {
-      // Too small, underflow to zero
-      return halfSign;
-    }
-    // Generate subnormal Float16 with rounding
-    mantissa = (mantissa | 0x800000);
-    let shiftAmount = 14 - newExp;
-    let roundBit = (mantissa >>> (shiftAmount - 1)) & 1;
-    let stickyBits = (mantissa & ((1 << (shiftAmount - 1)) - 1)) !== 0;
-    halfMant = (mantissa >>> shiftAmount) & 0x3FF;
-    // Apply round-to-nearest-even
-    if (roundBit && (stickyBits || (halfMant & 1))) {
-      halfMant++;
-      if (halfMant === 0x400) {
-        // Overflow from subnormal to normal
-        halfMant = 0;
-        halfExp = 1 << 10;
-      }
-    }
+    return halfSign;
   } else {
     // Normal number
     let newExp = exponent - 127 + 15;  // Adjust bias
@@ -294,26 +252,7 @@ function floatToFloat16(value) {
       // Overflow to infinity
       halfExp = 0x1F << 10;
     } else if (newExp <= 0) {
-      // Result will be subnormal
-      if (newExp < -10) {
-        // Too small, underflow to zero
-        return halfSign;
-      }
-      // Generate subnormal Float16 with rounding
-      mantissa = (mantissa | 0x800000);
-      let shiftAmount = 14 - newExp;
-      let roundBit = (mantissa >>> (shiftAmount - 1)) & 1;
-      let stickyBits = (mantissa & ((1 << (shiftAmount - 1)) - 1)) !== 0;
-      halfMant = (mantissa >>> shiftAmount) & 0x3FF;
-      // Apply round-to-nearest-even
-      if (roundBit && (stickyBits || (halfMant & 1))) {
-        halfMant++;
-        if (halfMant === 0x400) {
-          // Overflow from subnormal to normal
-          halfMant = 0;
-          halfExp = 1 << 10;
-        }
-      }
+      return halfSign;
     } else {
       // Normal Float16 with rounding
       let roundBit = (mantissa >>> 12) & 1;
@@ -346,16 +285,7 @@ function float16ToFloat32(float16Bits) {
   let mantissa = float16Bits & 0x03FF;
 
   if (exponent === 0) {
-    if (mantissa === 0) {
-      return bitsToFloat32(sign);
-    }
-    let shift = 0;
-    while ((mantissa & 0x0400) === 0) {
-      mantissa <<= 1;
-      shift++;
-    }
-    exponent = 1 - shift;
-    mantissa &= 0x3FF;
+    return bitsToFloat32(sign);
   } else if (exponent === 0x1F) {
     return bitsToFloat32(sign | 0x7F800000 | (mantissa << 13));
   }
@@ -378,14 +308,7 @@ function floatToFP8E5M2(value) {
   }
 
   if (exponent === 0) {
-    // Handle subnormal Float32 input
-    if (mantissa === 0) {
-      return sign << 7;  // Zero
-    }
-    // Normalize the subnormal number
-    let shift = Math.clz32(mantissa) - 8;
-    mantissa = (mantissa << shift) & 0x7FFFFF;
-    exponent = 1 - shift;
+    return sign << 7;
   }
 
   // Adjust exponent bias from 127 (FP32) to 15 (FP8 E5M2)
@@ -397,25 +320,7 @@ function floatToFP8E5M2(value) {
   }
 
   if (newExp <= 0) {
-    // Result will be subnormal or zero
-    if (newExp < -2) {
-      return sign << 7;  // Underflow to zero
-    }
-    // Generate subnormal FP8 with rounding
-    mantissa = (mantissa | 0x800000);
-    let shiftAmount = 22 - newExp;
-    let roundBit = (mantissa >>> (shiftAmount - 1)) & 1;
-    let stickyBits = (mantissa & ((1 << (shiftAmount - 1)) - 1)) !== 0;
-    let fp8Mant = (mantissa >>> shiftAmount) & 0x3;
-    // Apply round-to-nearest-even
-    if (roundBit && (stickyBits || (fp8Mant & 1))) {
-      fp8Mant++;
-      if (fp8Mant === 0x4) {
-        // Overflow from subnormal to normal
-        return (sign << 7) | (1 << 2);
-      }
-    }
-    return (sign << 7) | fp8Mant;
+    return sign << 7;
   }
 
   // Normal number with rounding
@@ -453,29 +358,7 @@ function fp8E5M2ToFloat(fp8Bits) {
   }
 
   if (exponent === 0) {
-    if (mantissa === 0) {
-      // Zero
-      return sign ? -0 : 0;
-    }
-    // Subnormal number: value = (-1)^sign * (mantissa/4) * 2^(-14) = mantissa *
-    // 2^(-16) Find the position of the leading 1 bit to normalize
-    let shift;
-    if (mantissa & 0x2) {
-      shift = 1;  // Leading 1 at bit 1 (MSB)
-    } else {
-      shift = 2;  // Leading 1 at bit 0 (LSB)
-    }
-    // New exponent: original subnormal exp is (1-15) = -14, then subtract shift
-    // for normalization
-    let newExp = (1 - 15) - shift + 127;
-    // Remove the implicit leading 1, keep remaining (mantissaBits - shift) bits
-    let remainingBits = mantissaBits - shift;
-    let remainingMantissa = mantissa & ((1 << remainingBits) - 1);
-    // Shift to Float32 mantissa position (MSB-aligned in 23-bit field)
-    let float32MantissaShift = 23 - remainingBits;
-    return bitsToFloat32(
-        (sign << 31) | (newExp << 23) |
-        (remainingMantissa << float32MantissaShift));
+    return sign ? -0 : 0;
   }
 
   // Normalized number
@@ -497,14 +380,7 @@ function floatToFP8E4M3(value) {
   }
 
   if (exponent === 0) {
-    // Handle subnormal Float32 input
-    if (mantissa === 0) {
-      return sign << 7;  // Zero
-    }
-    // Normalize the subnormal number
-    let shift = Math.clz32(mantissa) - 8;
-    mantissa = (mantissa << shift) & 0x7FFFFF;
-    exponent = 1 - shift;
+    return sign << 7;
   }
 
   // Adjust exponent bias from 127 (FP32) to 7 (FP8 E4M3)
@@ -516,25 +392,7 @@ function floatToFP8E4M3(value) {
   }
 
   if (newExp <= 0) {
-    // Result will be subnormal or zero
-    if (newExp < -3) {
-      return sign << 7;  // Underflow to zero
-    }
-    // Generate subnormal FP8 with rounding
-    mantissa = (mantissa | 0x800000);
-    let shiftAmount = 21 - newExp;
-    let roundBit = (mantissa >>> (shiftAmount - 1)) & 1;
-    let stickyBits = (mantissa & ((1 << (shiftAmount - 1)) - 1)) !== 0;
-    let fp8Mant = (mantissa >>> shiftAmount) & 0x7;
-    // Apply round-to-nearest-even
-    if (roundBit && (stickyBits || (fp8Mant & 1))) {
-      fp8Mant++;
-      if (fp8Mant === 0x8) {
-        // Overflow from subnormal to normal
-        return (sign << 7) | (1 << 3);
-      }
-    }
-    return (sign << 7) | fp8Mant;
+    return sign << 7;
   }
 
   // Normal number with rounding
@@ -572,31 +430,7 @@ function fp8E4M3ToFloat(fp8Bits) {
   }
 
   if (exponent === 0) {
-    if (mantissa === 0) {
-      // Zero
-      return sign ? -0 : 0;
-    }
-    // Subnormal number: value = (-1)^sign * (mantissa/8) * 2^(-6) = mantissa *
-    // 2^(-9) Find the position of the leading 1 bit to normalize
-    let shift;
-    if (mantissa & 0x4) {
-      shift = 1;  // Leading 1 at bit 2 (MSB)
-    } else if (mantissa & 0x2) {
-      shift = 2;  // Leading 1 at bit 1
-    } else {
-      shift = 3;  // Leading 1 at bit 0 (LSB)
-    }
-    // New exponent: original subnormal exp is (1-7) = -6, then subtract shift
-    // for normalization
-    let newExp = (1 - 7) - shift + 127;
-    // Remove the implicit leading 1, keep remaining (mantissaBits - shift) bits
-    let remainingBits = mantissaBits - shift;
-    let remainingMantissa = mantissa & ((1 << remainingBits) - 1);
-    // Shift to Float32 mantissa position (MSB-aligned in 23-bit field)
-    let float32MantissaShift = 23 - remainingBits;
-    return bitsToFloat32(
-        (sign << 31) | (newExp << 23) |
-        (remainingMantissa << float32MantissaShift));
+    return sign ? -0 : 0;
   }
 
   // Normalized number
@@ -659,20 +493,8 @@ function calculateLoss(original, converted, format = 'float32') {
   const mantissa = formatBits & formatInfo.mantissaMask;
 
   let precisionStep;
-  if (exponent === 0 && mantissa !== 0) {
-    // Subnormal number - precision varies based on actual value
-    let leadingZeros = 0;
-    let tempMantissa = mantissa;
-    const maxMantissaBit = 1 << (formatInfo.mantissaBits - 1);
-    while (tempMantissa > 0 && (tempMantissa & maxMantissaBit) === 0) {
-      leadingZeros++;
-      tempMantissa <<= 1;
-    }
-    // For subnormals, ULP is fixed at the minimum subnormal value
-    precisionStep = formatInfo.minSubnormal;
-  } else if (exponent === 0) {
-    // Zero - use the smallest possible subnormal value
-    precisionStep = formatInfo.minSubnormal;
+  if (exponent === 0) {
+    precisionStep = formatInfo.minNormal;
   } else if (exponent === formatInfo.expMask) {
     // Infinity or NaN
     return (error > 0 ? '+' : '-') + 'Infinity';
@@ -1317,7 +1139,7 @@ function analyzePrecision(value, format = 'float32') {
       effectiveBits: 0,
       isSubnormal: false,
       isUnderflow: true,
-      minRepresentable: formatInfo.minSubnormal
+      minRepresentable: formatInfo.minNormal
     };
   }
 
@@ -1354,28 +1176,19 @@ function analyzePrecision(value, format = 'float32') {
     effectiveBits = formatInfo.mantissaBits - trailingZeros;
   }
 
-  // Determine if it's a subnormal number
-  const isSubnormal = exponent === 0 && mantissa !== 0;
-
   // Calculate the actual exponent (removing bias)
-  const actualExponent =
-      isSubnormal ? 1 - formatInfo.expBias : (exponent - formatInfo.expBias);
+  const actualExponent = exponent - formatInfo.expBias;
 
   // Calculate the precision step (ULP - Unit in the Last Place)
-  if (isSubnormal) {
-    precisionStep = formatInfo.minSubnormal;
-  } else {
-    // For normal numbers, ULP is 2^(exponent - mantissa_bits)
-    precisionStep = Math.pow(2, actualExponent - formatInfo.mantissaBits);
-  }
+  precisionStep = Math.pow(2, actualExponent - formatInfo.mantissaBits);
 
   return {
     sign: sign,
     exponent: actualExponent,
     mantissa: mantissa,
     effectiveBits: effectiveBits,
-    isSubnormal: isSubnormal,
-    isUnderflow: Math.abs(value) < formatInfo.minSubnormal,
+    isSubnormal: false,
+    isUnderflow: Math.abs(value) < formatInfo.minNormal,
     minRepresentable: precisionStep
   };
 }
@@ -1384,30 +1197,12 @@ function analyzePrecision(value, format = 'float32') {
 function getCompatibleFormats(value, bitsRequired, actualExponent) {
   // Format specifications: mantissa bits, min exponent (normal), max exponent
   const formats = {
-    'Float32': {
-      mantissa: 23,
-      minExp: -126,
-      maxExp: 127,
-      minSubnormal: Math.pow(2, -149)
-    },
-    'TF32': {
-      mantissa: 10,
-      minExp: -126,
-      maxExp: 127,
-      minSubnormal: Math.pow(2, -136)
-    },
-    'BFloat16': {
-      mantissa: 7,
-      minExp: -126,
-      maxExp: 127,
-      minSubnormal: Math.pow(2, -133)
-    },
-    'Float16':
-        {mantissa: 10, minExp: -14, maxExp: 15, minSubnormal: Math.pow(2, -24)},
-    'FP8 E5M2':
-        {mantissa: 2, minExp: -14, maxExp: 15, minSubnormal: Math.pow(2, -16)},
-    'FP8 E4M3':
-        {mantissa: 3, minExp: -6, maxExp: 7, minSubnormal: Math.pow(2, -9)}
+    'Float32': {mantissa: 23, minExp: -126, maxExp: 127},
+    'TF32': {mantissa: 10, minExp: -126, maxExp: 127},
+    'BFloat16': {mantissa: 7, minExp: -126, maxExp: 127},
+    'Float16': {mantissa: 10, minExp: -14, maxExp: 15},
+    'FP8 E5M2': {mantissa: 2, minExp: -14, maxExp: 15},
+    'FP8 E4M3': {mantissa: 3, minExp: -6, maxExp: 7}
   };
 
   const absValue = Math.abs(value);
@@ -1430,18 +1225,9 @@ function getCompatibleFormats(value, bitsRequired, actualExponent) {
       continue;
     }
 
-    // Check exponent range
+    // Check exponent range (only normal numbers supported)
     if (actualExponent >= spec.minExp && actualExponent <= spec.maxExp) {
-      // Normal number fits
       compatible.push(name);
-    } else if (absValue >= spec.minSubnormal && actualExponent < spec.minExp) {
-      // Could be subnormal in this format - check if mantissa precision is
-      // sufficient For subnormals, we lose precision as value gets smaller
-      const subnormalShift = spec.minExp - actualExponent;
-      const effectiveMantissaBits = spec.mantissa - subnormalShift;
-      if (effectiveMantissaBits >= bitsRequired) {
-        compatible.push(name + ' (subnormal)');
-      }
     }
   }
 
@@ -1497,10 +1283,6 @@ function formatPrecisionDetails(value, format = 'float32') {
     representationStatus = '<strong>Underflow to Zero</strong>';
     representationTitle =
         `This number is too small to represent in ${formatInfo.description}`;
-  } else if (analysis.isSubnormal) {
-    representationStatus = '<strong>Subnormal</strong>';
-    representationTitle =
-        `Using gradual underflow for increased precision near zero`;
   } else if (analysis.exponent === Infinity) {
     if (analysis.mantissa === 0) {
       representationStatus = '<strong>Infinity</strong>';
